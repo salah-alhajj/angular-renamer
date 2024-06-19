@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as Components from './components';
-import { isAngularComponent } from './general';
 import  * as General  from './general';
 
 export function activate(context: vscode.ExtensionContext) {
