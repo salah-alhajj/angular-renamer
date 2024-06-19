@@ -35,7 +35,7 @@ async function replaceInProjectV2(oldName: string, newName: string, type: string
         // Extract import lines that include the old class name
         const importLines = getImportLines(text, oldClassName);
         const imports = extractImports(importLines);
-        let newText = text.replace(new RegExp(`\\b${oldClassName}\\b`, 'g'), newClassName);
+        let newText = text.replace(new RegExp(`\\b${oldClassName}/${oldClassName}\\b`, 'g'), `${newClassName}/${newClassName}`);
 
         for (const imp of imports) {
             if (imp.moduleName === oldClassName) {
@@ -74,9 +74,9 @@ async function componentHandler(file: any): Promise<void> {
 async function handleDir(file: any): Promise<void> {
 
     const oldUri = file.oldUri;
-    const oldComponent = oldUri.path.split('/')[oldUri.path.split('/').length - 1];
-    const newComponent = file.newUri.path.split('/')[file.newUri.path.split('/').length - 1];
 
+    const newComponent = path.basename(file.newUri.path);
+    const oldComponent = path.basename(file.oldUri.path);
 
 
     await renameAngularComponentFiles(file.newUri.fsPath, oldComponent, newComponent);
@@ -90,8 +90,7 @@ async function handleDir(file: any): Promise<void> {
     const oldClassName = extractExportedClasses(text, 'component')[0]
 
 
-    replaceClassName(newComponent, oldComponent, path.join(file.newUri.path, newComponent + '.component.ts'));
-    // replaceComponentInProject(oldComponent, newComponent)
+    // replaceClassName(newComponent, oldComponent, path.join(file.newUri.path, newComponent + '.component.ts'));
 
     replaceInProjectV2(
         path.basename(file.oldUri.path),
@@ -114,10 +113,6 @@ async function handleFile(file: any): Promise<void> {
     );
     const text = Buffer.from(data).toString('utf8');
     const oldClassName = extractExportedClasses(text, 'component')[0]
-
-
-    // replaceClassName(newfileName, oldfileName,
-    //     path.join(path.dirname(folderPath), newfileName,))
 
     replaceInProjectV2(
         oldfileName, newfileName,
