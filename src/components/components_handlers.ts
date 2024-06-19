@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
 
 function extractComponentName(folderPath: string): string {
 	const folderName = path.basename(folderPath);
@@ -15,9 +14,6 @@ function getSpecFilePath(filePath: string): string {
 
 
 function getComponentClassName(componentFolderName: string): string {
-	// 1- spilit by -
-	// 2- capitalize each word
-	// 3- join words
 	let parts = componentFolderName.split('-');
 	let newClassName = '';
 	for (var part of parts) {
@@ -40,14 +36,12 @@ function replaceClassName(newComponentName: string, oldComponentName: string, fi
 			const newText = text.replace(regex, `export class ${newNameClassComponent}`);
 			return vscode.workspace.fs.writeFile(
 				vscode.Uri.file(filePath),
-			    Buffer.from(newText, 'utf8')
+				Buffer.from(newText, 'utf8')
 			).then(() => {
 			});
 		} else {
-			// vscode.window.showErrorMessage(`Class name ${oldNameClassComponent} not found in the file.`);
 		}
 	}, (error) => {
-		//   vscode.window.showErrorMessage(`Error reading or writing file: ${error}`);
 	});
 }
 
@@ -57,7 +51,7 @@ async function replaceComponentInProject(oldComponentName: string, newComponentN
 	const oldComponentClassName = getComponentClassName(oldComponentName);
 	const newComponentClassName = getComponentClassName(newComponentName);
 	const workspaceRoot = vscode.workspace.rootPath;
-	
+
 
 	if (!workspaceRoot) {
 		vscode.window.showErrorMessage('No workspace folder open.');

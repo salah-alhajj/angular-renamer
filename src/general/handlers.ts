@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
 import { renameAngularFiles } from './renamers';
 import { extractExportedClasses, extractImports, getImportLines } from './utilities';
 
@@ -12,9 +11,9 @@ async function handler(file: any) {
 
     const type = types.find(t => file.oldUri.path.includes(`.${t}.ts`) ||
         file.newUri.path.includes(`.${t}.spec.ts`)
-    ); 
+    );
 
-    
+
 
     if (!type) return;
 
@@ -38,16 +37,7 @@ async function handler(file: any) {
 
 
 
-function extractName(folderPath: string): string {
-    const folderName = path.basename(folderPath);
-    return folderName.split('.')[0];
-}
 
-function getSpecFilePath(filePath: string): string {
-    const dirName = path.dirname(filePath);
-    const baseName = path.basename(filePath, '.ts');
-    return path.join(dirName, `${baseName}.spec.ts`);
-}
 
 
 
@@ -75,10 +65,8 @@ function replaceClassName(newName: string, oldName: string, type: string, filePa
             ).then(() => {
             });
         } else {
-            // vscode.window.showErrorMessage(`Class name ${oldNameClassComponent} not found in the file.`);
         }
     }, (error) => {
-        //   vscode.window.showErrorMessage(`Error reading or writing file: ${error}`);
     });
 }
 
@@ -123,7 +111,7 @@ async function replaceInProjectV2(oldName: string, newName: string, type: string
                 const newImportPath = path.relative(path.dirname(fileUri.fsPath), newPath).replace(/\\/g, '/');
                 const finalImportPath = newImportPath.startsWith('.') ? newImportPath : `./${newImportPath}`;
 
-                newText = newText.replace(oldImportPath, finalImportPath.replace('.ts',''));
+                newText = newText.replace(oldImportPath, finalImportPath.replace('.ts', ''));
             }
         }
 
@@ -139,45 +127,6 @@ async function replaceInProjectV2(oldName: string, newName: string, type: string
 
 
 }
-async function replaceInProject(oldName: string, newName: string, type: string, newPath: string): Promise<void> {
-    const oldClassName = getClassName(oldName, type);
-    const newClassName = getClassName(newName, type);
-    const workspaceRoot = vscode.workspace.rootPath;
-
-    if (!workspaceRoot) {
-        vscode.window.showErrorMessage('No workspace folder open.');
-        return;
-    }
-
-    const filesPattern = new vscode.RelativePattern(workspaceRoot, `src/**/*.ts`);
-    const files = await vscode.workspace.findFiles(filesPattern);
-
-    await Promise.all(files.map(async (fileUri) => {
-        const data = await vscode.workspace.fs.readFile(fileUri);
-        const text = Buffer.from(data).toString('utf8');
-
-        const classNameRegex = new RegExp(`\\b${oldClassName}\\b`, 'g');
-        const importPathRegex = new RegExp(`(import\\s+\\{[^\\}]*\\}\\s+from\\s+['"])([^'"]*${oldName}\\.${type})(['"])`, 'g');
-
-        let newText = text.replace(classNameRegex, newClassName);
-
-        newText = newText.replace(importPathRegex, (match, p1, p2, p3) => {
-            // Calculate the new import path relative to the fileUri
-            const oldImportPath = path.join(path.dirname(fileUri.fsPath), p2);
-            const newImportPath = path.relative(
-                path.dirname(fileUri.fsPath),
-                newPath
-            ).replace(/\\/g, '/');  // Ensure correct path separators for different OS
-
-            // Ensure the import path starts with './' or '../' for relative paths
-            const finalImportPath = newImportPath.startsWith('.') ? newImportPath : `./${newImportPath}`;
-
-            return `${p1}${finalImportPath}${p3}`;
-        });
-
-        await vscode.workspace.fs.writeFile(fileUri, Buffer.from(newText, 'utf8'));
-    }));
-}
 
 
 
@@ -185,7 +134,7 @@ async function replaceInProject(oldName: string, newName: string, type: string, 
 
 export {
 
-    
+
     getClassName,
     handler
 
