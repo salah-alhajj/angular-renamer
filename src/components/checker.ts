@@ -1,7 +1,8 @@
 
 import * as vscode from 'vscode';
+import { isDirectory } from '../general/checker';
 import { extractComponentName } from './components_handlers';
-import { isDirectory } from '../general';
+
 async function checkWorkspaceFolders() {
     if (vscode.workspace.workspaceFolders) {
         for (const folder of vscode.workspace.workspaceFolders) {

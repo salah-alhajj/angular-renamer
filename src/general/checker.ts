@@ -28,5 +28,47 @@ async function isAngularComponent(targetPath: string): Promise<boolean> {
     const hasComponentCss = files.some(([name]) => name.endsWith('.component.css'));
     const isComponentFolder = hasComponentTs && hasComponentHtml && hasComponentCss;
     return isComponentFolder;
+}async function isAngularService(targetPath: string): Promise<boolean> {
+    if (!(await isDirectory(targetPath))){
+        targetPath=path.dirname(targetPath);
+    }
+    const files = await vscode.workspace.fs.readDirectory(vscode.Uri.file(targetPath));
+
+    const hasServiceTs = files.some(([name]) => name.endsWith('.service.ts'));
+    return hasServiceTs;
 }
-export {isAngularComponent,isDirectory}
+
+async function isAngularGuard(targetPath: string): Promise<boolean> {
+    if (!(await isDirectory(targetPath))){
+        targetPath=path.dirname(targetPath);
+    }
+    const files = await vscode.workspace.fs.readDirectory(vscode.Uri.file(targetPath));
+    const hasGuardTs = files.some(([name]) => name.endsWith('.component.ts'));
+    return hasGuardTs;
+}
+async function isAngularPipe(targetPath: string): Promise<boolean> {
+    if (!(await isDirectory(targetPath))){
+        targetPath=path.dirname(targetPath);
+    }
+    const files = await vscode.workspace.fs.readDirectory(vscode.Uri.file(targetPath));
+    const hasPipeTs = files.some(([name]) => name.endsWith('.pipe.ts'));
+    return hasPipeTs;
+}
+async function isAngularDirective(targetPath: string): Promise<boolean> {
+    if (!(await isDirectory(targetPath))){
+        targetPath=path.dirname(targetPath);
+    }
+    const files = await vscode.workspace.fs.readDirectory(vscode.Uri.file(targetPath));
+    const hasDirectiveTs = files.some(([name]) => name.endsWith('.directive.ts'));
+    return hasDirectiveTs;
+}
+
+
+export {isAngularComponent,isDirectory,
+    isAngularDirective,
+    isAngularGuard,
+    isAngularPipe,
+    isAngularService
+
+
+}
