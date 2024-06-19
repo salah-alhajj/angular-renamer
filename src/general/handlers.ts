@@ -2,43 +2,35 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { renameAngularFiles } from './renamers';
+import { extractExportedClasses } from './utilities';
+
 
 
 
 async function handler(file: any) {
-	if (!(
-		file.oldUri.path.includes('pipe.ts') ||
-		file.oldUri.path.includes('pipe.spec.ts') ||
+    const types = ['component', 'service', 'guard', 'pipe', 'directive'];
 
-		file.oldUri.path.includes('directive.ts') ||
-		file.oldUri.path.includes('directive.spec.ts') ||
+    const type = types.find(t => file.oldUri.path.includes(`.${t}.ts`));
+    if (!type) return;
 
-		file.oldUri.path.includes('service.ts') ||
-		file.oldUri.path.includes('service.spec.ts') ||
+    const oldName = path.basename(file.oldUri.path).split('.')[0];
+    const newName = path.basename(file.newUri.path).split('.')[0];
 
-		file.oldUri.path.includes('guard.ts') ||
-		file.oldUri.path.includes('guard.spec.ts')
+    await renameAngularFiles(path.dirname(file.newUri.path), oldName, newName, type);
 
+    const fileContent= await vscode.workspace.fs.readFile(vscode.Uri.file(path.dirname(file.newUri.path))).then((data) => {
+        return Buffer.from(data).toString('utf8');
+    });
 
-	)) {
-		return
+    const oldClassName =  extractExportedClasses(fileContent,type) 
 
-	}
-	const oldName = path.basename(file.oldUri.path)
-	const newName = path.basename(file.newUri.path)
-	const type = newName.split('.')[1]
-	vscode.window.showInformationMessage(`Type is ${type}`)
-	await renameAngularFiles(file.newUri.fsPath, oldName, newName, type)
-	replaceClassName(newName,oldName,type,file.newUri.path)
-	replaceInProject(newName,oldName,type,)
+    
 
-
-
-
-
-
-
+    await replaceClassName(newName, oldName, type, file.newUri.path);
+    await replaceInProjectV2(oldName, newName, type,path.dirname(file.newUri.path));
 }
+
+
 
 function extractName(folderPath: string): string {
 	const folderName = path.basename(folderPath);
@@ -52,24 +44,17 @@ function getSpecFilePath(filePath: string): string {
 }
 
 
-function getClassName(componentFolderName: string, type: string): string {
-	// 1- spilit by -
-	// 2- capitalize each word
-	// 3- join words
-	let parts = componentFolderName.split('-');
-	let newClassName = '';
-	for (var part of parts) {
-		newClassName += part.charAt(0).toUpperCase() + part.slice(1);
-	}
-	// make type lower exclude firs letter
-	type = type.toLowerCase().charAt(0).toUpperCase() + type.slice(1);
-	return newClassName + type;
+
+function getClassName(name: string, type: string): string {
+    let parts = name.split('-');
+    let newClassName = parts.map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('');
+    type = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
+    return newClassName + type;
 }
 
 function replaceClassName(newName: string, oldName: string, type: string, filePath: string): Thenable<void> {
 	const newNameClass = getClassName(newName, type);
 	const oldNameClass = getClassName(oldName, type);
-	// const fullFilePath = 
 
 	return vscode.workspace.fs.readFile(vscode.Uri.file(filePath)).then((data) => {
 		const text = Buffer.from(data).toString('utf8');
@@ -93,40 +78,133 @@ function replaceClassName(newName: string, oldName: string, type: string, filePa
 
 
 
-async function replaceInProject(oldName: string, newName: string, type: string): Promise<void> {
-	const oldClassName = getClassName(oldName, type);
-	const newClassName = getClassName(newName, type);
-	const workspaceRoot = vscode.workspace.rootPath;
+// async function replaceInProject(oldName: string, newName: string, type: string): Promise<void> {
+// 	const oldClassName = getClassName(oldName, type);
+// 	const newClassName = getClassName(newName, type);
+// 	const workspaceRoot = vscode.workspace.rootPath;
 
 
-	if (!workspaceRoot) {
-		vscode.window.showErrorMessage('No workspace folder open.');
-		return;
-	}
+// 	if (!workspaceRoot) {
+// 		vscode.window.showErrorMessage('No workspace folder open.');
+// 		return;
+// 	}
 
-	const filesPattern = new vscode.RelativePattern(workspaceRoot, `src/**/*.${type}.ts`);
-	const files = await vscode.workspace.findFiles(filesPattern);
+// 	const filesPattern = new vscode.RelativePattern(workspaceRoot, `src/**/*.ts`);
+// 	const files = await vscode.workspace.findFiles(filesPattern);
 
-	await Promise.all(files.map(async (fileUri) => {
-		const data = await vscode.workspace.fs.readFile(fileUri);
-		const text = Buffer.from(data).toString('utf8');
+// 	await Promise.all(files.map(async (fileUri) => {
+// 		const data = await vscode.workspace.fs.readFile(fileUri);
+// 		const text = Buffer.from(data).toString('utf8');
 
-		const classNameRegex = new RegExp(`\\b${oldClassName}\\b`, 'g');
+// 		const classNameRegex = new RegExp(`\\b${oldClassName}\\b`, 'g');
 
-		let newText = text;
-		const oldImportPath = `${oldName}/${oldName}.${type}`;
-		const newImportPath = `${newName}/${newName}.${type}`;
-		newText = newText.replaceAll(oldImportPath, newImportPath);
-		newText = newText.replaceAll(oldClassName, newClassName);
+// 		let newText = text;
+// 		const oldImportPath = `${oldName}.${type}`;
+// 		const newImportPath = `${newName}.${type}`;
+
+// 		// newText = newText.replaceAll(oldImportPath, newImportPath);
+// 		newText = newText.replaceAll(oldClassName, newClassName);
 
 
 
-		// rewrite newText
-		await vscode.workspace.fs.writeFile(fileUri, Buffer.from(newText, 'utf8'));
-		newText = newText.replace(classNameRegex, newClassName);
-	}))
+// 		// rewrite newText
+// 		await vscode.workspace.fs.writeFile(fileUri, Buffer.from(newText, 'utf8'));
+// 		newText = newText.replace(classNameRegex, newClassName);
+// 	}))
 
+// }
+
+
+async function replaceInProjectV2(oldName: string, newName: string, type: string, newPath: string,oldFileClassName:string| undefined=undefined): Promise<void> {
+    // read file from newPath 
+    const fileContent= await vscode.workspace.fs.readFile(vscode.Uri.file(newPath)).then((data) => {
+        return Buffer.from(data).toString('utf8');
+    });
+
+    const oldClassName =  getClassName(oldName, type);
+    const newClassName =  extractExportedClasses(fileContent,type)[0]
+
+    
+    const workspaceRoot = vscode.workspace.rootPath;
+
+    if (!workspaceRoot) {
+        vscode.window.showErrorMessage('No workspace folder open.');
+        return;
+    }
+    
+
+    const filesPattern = new vscode.RelativePattern(workspaceRoot, `src/**/*.ts`);
+    const files = await vscode.workspace.findFiles(filesPattern);
+
+    await Promise.all(files.map(async (fileUri) => {
+        const data = await vscode.workspace.fs.readFile(fileUri);
+        const text = Buffer.from(data).toString('utf8');
+
+        const classNameRegex = new RegExp(`\\b${oldClassName}\\b`, 'g');
+        const importPathRegex = new RegExp(`(import\\s+\\{[^\\}]*\\}\\s+from\\s+['"])([^'"]*${oldName}\\.${type})(['"])`, 'g');
+
+        let newText = text.replace(classNameRegex, newClassName);
+
+        newText = newText.replace(importPathRegex, (match, p1, p2, p3) => {
+            // Calculate the new import path relative to the fileUri
+            const oldImportPath = path.join(path.dirname(fileUri.fsPath), p2);
+            const newImportPath = path.relative(
+                path.dirname(fileUri.fsPath),
+                newPath
+            ).replace(/\\/g, '/');  // Ensure correct path separators for different OS
+
+            // Ensure the import path starts with './' or '../' for relative paths
+            const finalImportPath = newImportPath.startsWith('.') ? newImportPath : `./${newImportPath}`;
+
+            return `${p1}${finalImportPath}${p3}`;
+        });
+
+        await vscode.workspace.fs.writeFile(fileUri, Buffer.from(newText, 'utf8'));
+    }));
 }
+async function replaceInProject(oldName: string, newName: string, type: string, newPath: string): Promise<void> {
+    const oldClassName = getClassName(oldName, type);
+    const newClassName = getClassName(newName, type);
+    const workspaceRoot = vscode.workspace.rootPath;
+
+    if (!workspaceRoot) {
+        vscode.window.showErrorMessage('No workspace folder open.');
+        return;
+    }
+
+    const filesPattern = new vscode.RelativePattern(workspaceRoot, `src/**/*.ts`);
+    const files = await vscode.workspace.findFiles(filesPattern);
+
+    await Promise.all(files.map(async (fileUri) => {
+        const data = await vscode.workspace.fs.readFile(fileUri);
+        const text = Buffer.from(data).toString('utf8');
+
+        const classNameRegex = new RegExp(`\\b${oldClassName}\\b`, 'g');
+        const importPathRegex = new RegExp(`(import\\s+\\{[^\\}]*\\}\\s+from\\s+['"])([^'"]*${oldName}\\.${type})(['"])`, 'g');
+
+        let newText = text.replace(classNameRegex, newClassName);
+
+        newText = newText.replace(importPathRegex, (match, p1, p2, p3) => {
+            // Calculate the new import path relative to the fileUri
+            const oldImportPath = path.join(path.dirname(fileUri.fsPath), p2);
+            const newImportPath = path.relative(
+                path.dirname(fileUri.fsPath),
+                newPath
+            ).replace(/\\/g, '/');  // Ensure correct path separators for different OS
+
+            // Ensure the import path starts with './' or '../' for relative paths
+            const finalImportPath = newImportPath.startsWith('.') ? newImportPath : `./${newImportPath}`;
+
+            return `${p1}${finalImportPath}${p3}`;
+        });
+
+        await vscode.workspace.fs.writeFile(fileUri, Buffer.from(newText, 'utf8'));
+    }));
+}
+
+
+
+
 
 export {
 

@@ -1,36 +1,29 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
 
 
-// rename folder 
 
 
-async function renameAngularFiles(folderPath: string, oldComponentName: string,newComponentName:string,type:string) {
+
+async function renameAngularFiles(folderPath: string, oldName: string, newName: string, type: string) {
     const filesToRename = [
-        { oldCF: oldComponentName+`.${type}.ts`, newCF: newComponentName+`.${type}.ts` },
-        { oldCF: oldComponentName+`.${type}.spec.ts`, newCF: newComponentName+`.${type}.spec.ts` },
-        ];
-    for (let i = 0; i < filesToRename.length; i++) 
-    {
-        const file = filesToRename[i];
-        const oldFilePath = path.join(folderPath, `${file.oldCF}`);
-        const newFilePath = path.join(folderPath, `${file.newCF}`);
+        { oldCF: `${oldName}.${type}.ts`, newCF: `${newName}.${type}.ts` },
+        { oldCF: `${oldName}.${type}.spec.ts`, newCF: `${newName}.${type}.spec.ts` }
+    ];
 
+    for (const file of filesToRename) {
         try {
-            
             await vscode.workspace.fs.rename(
-                vscode.Uri.file(oldFilePath),
-                vscode.Uri.file(newFilePath));
-            } 
-        catch (error)
-         {}
+                vscode.Uri.file(path.join(folderPath, file.oldCF)),
+                vscode.Uri.file(path.join(folderPath, file.newCF))
+            );
+        } catch (error) {
+            console.error(`Failed to rename file ${file.oldCF} to ${file.newCF}: ${error}`);
+        }
     }
-    
-
-
-
-    
 }
+
 export{
     renameAngularFiles,
 }
