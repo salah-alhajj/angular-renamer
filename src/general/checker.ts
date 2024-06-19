@@ -64,11 +64,13 @@ async function isAngularDirective(targetPath: string): Promise<boolean> {
 }
 
 
-export {isAngularComponent,isDirectory,
-    isAngularDirective,
-    isAngularGuard,
-    isAngularPipe,
-    isAngularService
+export {
+    isAngularComponent,
+    isDirectory,
+    // isAngularDirective,
+    // isAngularGuard,
+    // isAngularPipe,
+    // isAngularService
 
 
 }

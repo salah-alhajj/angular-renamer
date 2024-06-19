@@ -22,10 +22,10 @@ interface ImportDetails {
     return imports;
   }
   
-  function getImportLines(code: string): string[] {
+  function getImportLines(code: string,query:string): string[] {
     const lines = code.split('\n');
     const importLines = lines.filter(line => line.trim().startsWith('import')
-    // && line.trim().includes('PS')
+    && line.trim().includes(query)
   
   );
     return importLines;
