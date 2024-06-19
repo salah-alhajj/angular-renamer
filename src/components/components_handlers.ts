@@ -47,49 +47,49 @@ function replaceClassName(newComponentName: string, oldComponentName: string, fi
 
 
 
-async function replaceComponentInProject(oldComponentName: string, newComponentName: string): Promise<void> {
-	const oldComponentClassName = getComponentClassName(oldComponentName);
-	const newComponentClassName = getComponentClassName(newComponentName);
-	const workspaceRoot = vscode.workspace.rootPath;
+// async function replaceComponentInProject(oldComponentName: string, newComponentName: string): Promise<void> {
+// 	const oldComponentClassName = getComponentClassName(oldComponentName);
+// 	const newComponentClassName = getComponentClassName(newComponentName);
+// 	const workspaceRoot = vscode.workspace.rootPath;
 
 
-	if (!workspaceRoot) {
-		vscode.window.showErrorMessage('No workspace folder open.');
-		return;
-	}
+// 	if (!workspaceRoot) {
+// 		vscode.window.showErrorMessage('No workspace folder open.');
+// 		return;
+// 	}
 
-	const filesPattern = new vscode.RelativePattern(workspaceRoot, 'src/**/*.component.ts');
-	const files = await vscode.workspace.findFiles(filesPattern);
+// 	const filesPattern = new vscode.RelativePattern(workspaceRoot, 'src/**/*.component.ts');
+// 	const files = await vscode.workspace.findFiles(filesPattern);
 
-	await Promise.all(files.map(async (fileUri) => {
-		const data = await vscode.workspace.fs.readFile(fileUri);
-		const text = Buffer.from(data).toString('utf8');
+// 	await Promise.all(files.map(async (fileUri) => {
+// 		const data = await vscode.workspace.fs.readFile(fileUri);
+// 		const text = Buffer.from(data).toString('utf8');
 
-		const classNameRegex = new RegExp(`\\b${oldComponentClassName}\\b`, 'g');
+// 		const classNameRegex = new RegExp(`\\b${oldComponentClassName}\\b`, 'g');
 
-		let newText = text;
-		const oldImportPath = `${oldComponentName}/${oldComponentName}.component`;
-		const newImportPath = `${newComponentName}/${newComponentName}.component`;
-		newText = newText.replaceAll(oldImportPath, newImportPath);
-		newText = newText.replaceAll(oldComponentClassName, newComponentClassName);
-
-
-
-		// rewrite newText
-		await vscode.workspace.fs.writeFile(fileUri, Buffer.from(newText, 'utf8'));
+// 		let newText = text;
+// 		const oldImportPath = `${oldComponentName}/${oldComponentName}.component`;
+// 		const newImportPath = `${newComponentName}/${newComponentName}.component`;
+// 		newText = newText.replaceAll(oldImportPath, newImportPath);
+// 		newText = newText.replaceAll(oldComponentClassName, newComponentClassName);
 
 
 
+// 		// rewrite newText
+// 		await vscode.workspace.fs.writeFile(fileUri, Buffer.from(newText, 'utf8'));
 
-		newText = newText.replace(classNameRegex, newComponentClassName);
-	}))
 
-}
+
+
+// 		newText = newText.replace(classNameRegex, newComponentClassName);
+// 	}))
+
+// }
 
 export {
 	extractComponentName,
 	getSpecFilePath,
 	getComponentClassName,
 	replaceClassName,
-	replaceComponentInProject
+	// replaceComponentInProject
 }

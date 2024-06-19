@@ -1,6 +1,6 @@
 import path from 'path';
 import * as vscode from 'vscode';
-import { replaceClassName, replaceComponentInProject } from './components_handlers';
+import { replaceClassName } from './components_handlers';
 import { renameAngularComponentFiles } from './renamers';
 import { extractExportedClasses, isDirectory } from '../general';
 import * as General from '../general';
@@ -15,14 +15,12 @@ async function replaceInProjectV2(oldName: string, newName: string, type: string
 
     const newClassName = extractExportedClasses(fileContent, type)[0]
 
-
     const workspaceRoot = vscode.workspace.rootPath;
 
     if (!workspaceRoot) {
         vscode.window.showErrorMessage('No workspace folder open.');
         return;
     }
-
 
     const filesPattern = new vscode.RelativePattern(workspaceRoot, `src/**/*.ts`);
     const files = await vscode.workspace.findFiles(filesPattern);
@@ -51,14 +49,6 @@ async function replaceInProjectV2(oldName: string, newName: string, type: string
         await vscode.workspace.fs.writeFile(fileUri, Buffer.from(newText, 'utf8'));
     }));
 
-
-
-
-
-
-
-
-
 }
 async function componentHandler(file: any): Promise<void> {
 
@@ -73,7 +63,6 @@ async function componentHandler(file: any): Promise<void> {
 }
 async function handleDir(file: any): Promise<void> {
 
-    const oldUri = file.oldUri;
 
     const newComponent = path.basename(file.newUri.path);
     const oldComponent = path.basename(file.oldUri.path);
@@ -90,7 +79,7 @@ async function handleDir(file: any): Promise<void> {
     const oldClassName = extractExportedClasses(text, 'component')[0]
 
 
-    // replaceClassName(newComponent, oldComponent, path.join(file.newUri.path, newComponent + '.component.ts'));
+    await replaceClassName(newComponent, oldComponent, path.join(file.newUri.path, newComponent + '.component.ts'));
 
     replaceInProjectV2(
         path.basename(file.oldUri.path),
@@ -113,6 +102,7 @@ async function handleFile(file: any): Promise<void> {
     );
     const text = Buffer.from(data).toString('utf8');
     const oldClassName = extractExportedClasses(text, 'component')[0]
+    await replaceClassName(newfileName, oldClassName, path.join(file.newUri.path, oldfileName + '.component.ts'));
 
     replaceInProjectV2(
         oldfileName, newfileName,
