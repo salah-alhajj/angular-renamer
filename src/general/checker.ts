@@ -28,7 +28,8 @@ async function isAngularComponent(targetPath: string): Promise<boolean> {
     const hasComponentCss = files.some(([name]) => name.endsWith('.component.css'));
     const isComponentFolder = hasComponentTs && hasComponentHtml && hasComponentCss;
     return isComponentFolder;
-}async function isAngularService(targetPath: string): Promise<boolean> {
+}
+async function isAngularService(targetPath: string): Promise<boolean> {
     if (!(await isDirectory(targetPath))){
         targetPath=path.dirname(targetPath);
     }
@@ -63,14 +64,7 @@ async function isAngularDirective(targetPath: string): Promise<boolean> {
     return hasDirectiveTs;
 }
 
-
 export {
     isAngularComponent,
     isDirectory,
-    // isAngularDirective,
-    // isAngularGuard,
-    // isAngularPipe,
-    // isAngularService
-
-
 }

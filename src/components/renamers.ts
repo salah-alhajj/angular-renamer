@@ -1,10 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-
-
 // rename folder 
-
-
 async function renameAngularComponentFiles(folderPath: string, oldComponentName: string,newComponentName:string) {
     const filesToRename = [
         { oldCF: oldComponentName+'.component.spec.ts', newCF: newComponentName+'.component.spec.ts' },
@@ -43,8 +39,6 @@ async function renameAngularComponentFiles(folderPath: string, oldComponentName:
         } catch (error) {
         }
     }
-
-
 
     
 }

@@ -1,4 +1,3 @@
-import * as vscode from 'vscode'
 interface ImportDetails {
     moduleName: string;
     path: string;

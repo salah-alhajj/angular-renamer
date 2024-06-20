@@ -1,11 +1,5 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
-
-
-
-
-
 async function renameAngularFiles(folderPath: string, oldName: string, newName: string, type: string) {
     const filesToRename = [
         { oldCF: `${oldName}.${type}.ts`, newCF: `${newName}.${type}.ts` },
@@ -24,6 +18,6 @@ async function renameAngularFiles(folderPath: string, oldName: string, newName: 
     }
 }
 
-export{
+export {
     renameAngularFiles,
 }

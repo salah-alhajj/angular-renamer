@@ -1,20 +1,26 @@
-# angular-renamer README
+# Angular Renamer README
 
+![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/your-extension-id)
+![Downloads](https://img.shields.io/visual-studio-marketplace/d/your-extension-id)
+![Rating](https://img.shields.io/visual-studio-marketplace/r/your-extension-id)
 
 ## Description
 
-The **Angular Component Renamer** extension for Visual Studio Code is designed to simplify the process of renaming Angular components. This extension automatically renames components along with all associated files and classes, saving you time and effort while ensuring consistency across your project.
+The **Angular Renamer** extension for Visual Studio Code is designed to simplify the process of renaming Angular components, pipes, directives, and services. This extension automatically renames all associated files and classes, saving you time and effort while ensuring consistency across your project.
 
 ## Features
 
-- Automatically renames Angular components.
+- Automatically renames Angular components, pipes, directives, and services.
 - Updates the names of associated files (HTML, CSS, TS) seamlessly.
-- Modifies class names within files to match the new component name.
+- Modifies class names within files to match the new name.
 - Maintains project structure and organization.
 - Triggers automatically when renaming a component's folder.
+- Ensures that all references and import statements are updated throughout your project.
+- Provides clear error messages in case of any issues during the renaming process.
 
 ### Screenshots
 
+Add screenshots or GIFs here to demonstrate the extension in action.
 
 > Tip: Short, focused animations are an excellent way to show off your extension!
 
@@ -35,29 +41,17 @@ No known issues at the moment. Please report any issues on the [GitHub issues pa
 
 ### 1.0.0
 
-- Initial release of Angular Component Renamer.
-- Automatically renames Angular components and updates all related files and class names.
+- Initial release of Angular Renamer.
+- Automatically renames Angular components, pipes, directives, and services.
+- Updates all related files and class names.
 - Triggers automatically when renaming a component's folder.
 
----
 
-## Following extension guidelines
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
 
-- [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
 
-## Working with Markdown
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
 
-- Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-- Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-- Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+<img src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*zhULfxu31gL3D_vlhS1rjA.png" alt="Angular Icon" width="300" height="300">
 
-## For more information
-
-- [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-- [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+****😜🤩 Happy Angular Coding 🤩😜****
