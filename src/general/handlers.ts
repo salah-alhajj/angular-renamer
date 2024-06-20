@@ -69,34 +69,7 @@ function replaceClassName(newName: string, oldName: string, type: string, filePa
     }, (error) => {
     });
 }
-async function replaceClassNameV2(
-    newComponentName: string,
-    oldClassNameComponent: string,
-    filePath: string,
-    type:string
-): Promise<void> {
-    const newNameClassComponent = getClassName(newComponentName,type);
 
-    try {
-        const data = await vscode.workspace.fs.readFile(vscode.Uri.file(filePath));
-        const text = Buffer
-			.from(data)
-			.toString('utf8');
-
-        const classRegex = new RegExp(`\\b${oldClassNameComponent}\\b`, 'g');
-        const newText = text.replace(classRegex, newNameClassComponent);
-
-        if (newText !== text) {
-            await vscode.workspace.fs.writeFile(
-                vscode.Uri.file(filePath),
-                Buffer.from(newText, 'utf8')
-            );
-        }
-    } catch (error) {
-        vscode.window.showErrorMessage(`Error replacing class name: ${error}`);
-        throw error; // Re-throw the error to propagate it
-    }
-}
 
 
 
@@ -124,12 +97,12 @@ async function replaceInProjectV2(oldName: string, newName: string, type: string
 
     await Promise.all(files.map(async (fileUri) => {
         const data = await vscode.workspace.fs.readFile(fileUri);
-        const text = Buffer.from(data).toString('utf8');
+        let text = Buffer.from(data).toString('utf8');
 
         // Extract import lines that include the old class name
         const importLines = getImportLines(text, oldClassName);
         const imports = extractImports(importLines);
-        let newText = text.replace(new RegExp(`\\b${oldClassName}/\\b`, 'g'), newClassName);
+         text = text.replace(new RegExp(`\\b${oldClassName}/\\b`, 'g'), newClassName);
 
         for (const imp of imports) {
             if (imp.moduleName === oldClassName) {

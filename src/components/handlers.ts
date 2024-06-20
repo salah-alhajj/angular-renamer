@@ -1,5 +1,6 @@
 import path from 'path';
 import * as vscode from 'vscode';
+import { replaceClassName } from './components_handlers';
 import { renameAngularComponentFiles } from './renamers';
 import { extractExportedClasses, isDirectory } from '../general';
 import * as General from '../general';
@@ -86,7 +87,7 @@ async function handleDir(file: any): Promise<void> {
         );
         const text = Buffer.from(data).toString('utf8');
         const oldClassName = extractExportedClasses(text, 'component')[0]
-        await General.replaceClassName(newComponent, oldClassName,'component', path.join(file.newUri.path, newComponent + '.component.ts'));
+        await replaceClassName(newComponent, oldClassName, path.join(file.newUri.path, newComponent + '.component.ts'));
 
         await replaceInProjectV2(
             path.basename(file.oldUri.path),
