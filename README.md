@@ -5,9 +5,9 @@
 ![VS Code](https://img.shields.io/badge/VS_Code-0078D4?style=for-the-badge&logo=visual%20studio%20code&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 
-![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/your-extension-id)
-![Downloads](https://img.shields.io/visual-studio-marketplace/d/your-extension-id)
-![Rating](https://img.shields.io/visual-studio-marketplace/r/your-extension-id)
+![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/salah-aldain.angular-renamer)
+![Downloads](https://img.shields.io/visual-studio-marketplace/d/salah-aldain.angular-renamer)
+![Rating](https://img.shields.io/visual-studio-marketplace/r/salah-aldain.angular-renamer)
 
 ## 📖 Overview
 
