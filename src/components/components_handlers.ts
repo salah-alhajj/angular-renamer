@@ -25,33 +25,6 @@ function getComponentClassName(componentFolderName: string): string {
 
 
 
-async function replaceClassName(
-    newComponentName: string,
-    oldClassNameComponent: string,
-    filePath: string
-): Promise<void> {
-    const newNameClassComponent = getComponentClassName(newComponentName);
-
-    try {
-        const data = await vscode.workspace.fs.readFile(vscode.Uri.file(filePath));
-        const text = Buffer
-			.from(data)
-			.toString('utf8');
-
-        const classRegex = new RegExp(`\\b${oldClassNameComponent}\\b`, 'g');
-        const newText = text.replace(classRegex, newNameClassComponent);
-
-        if (newText !== text) {
-            await vscode.workspace.fs.writeFile(
-                vscode.Uri.file(filePath),
-                Buffer.from(newText, 'utf8')
-            );
-        }
-    } catch (error) {
-        vscode.window.showErrorMessage(`Error replacing class name: ${error}`);
-        throw error; // Re-throw the error to propagate it
-    }
-}
 
 
 
@@ -59,6 +32,6 @@ export {
 	extractComponentName,
 	getSpecFilePath,
 	getComponentClassName,
-	replaceClassName,
+	
 	// replaceComponentInProject
 }

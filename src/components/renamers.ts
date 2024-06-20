@@ -28,7 +28,6 @@ async function renameAngularComponentFiles(folderPath: string, oldComponentName:
         try {
             await vscode.workspace.fs.rename(vscode.Uri.file(oldFilePath), vscode.Uri.file(newFilePath));
         } catch (error) {
-            // vscode.window.showErrorMessage(`Failed to rename file: ${oldFilePath} to ${newFilePath}: ${error}`);
         }
     }
     for (let i=3;i < filesToRename.length;i++){
