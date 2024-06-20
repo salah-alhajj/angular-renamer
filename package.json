@@ -10,6 +10,10 @@
   "categories": [
     "Other"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/salah-alhajj/angular-renamer/"
+  },
   "activationEvents": [
   
       "onStartupFinished"
