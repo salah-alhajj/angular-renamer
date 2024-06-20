@@ -39,7 +39,6 @@ async function renameAngularComponentFiles(folderPath: string, oldComponentName:
         } catch (error) {
         }
     }
-
     
 }
 export{
