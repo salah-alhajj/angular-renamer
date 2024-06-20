@@ -102,7 +102,7 @@ async function replaceInProjectV2(oldName: string, newName: string, type: string
         // Extract import lines that include the old class name
         const importLines = getImportLines(text, oldClassName);
         const imports = extractImports(importLines);
-        let newText = text.replace(new RegExp(`\\b${oldClassName}\\b`, 'g'), newClassName);
+        let newText = text.replace(new RegExp(`\\b${oldClassName}/\\b`, 'g'), newClassName);
 
         for (const imp of imports) {
             if (imp.moduleName === oldClassName) {
