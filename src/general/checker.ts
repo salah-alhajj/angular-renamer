@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-async function isDirectory(uri: vscode.Uri| string): Promise<boolean> {
+async function isDirectory(uri: vscode.Uri | string): Promise<boolean> {
     try {
         // check if uri is uri or string
         if (typeof uri === 'string') {
@@ -18,8 +18,8 @@ async function isDirectory(uri: vscode.Uri| string): Promise<boolean> {
 }
 
 async function isAngularComponent(targetPath: string): Promise<boolean> {
-    if (!(await isDirectory(targetPath))){
-        targetPath=path.dirname(targetPath);
+    if (!(await isDirectory(targetPath))) {
+        targetPath = path.dirname(targetPath);
     }
     const files = await vscode.workspace.fs.readDirectory(vscode.Uri.file(targetPath));
 
@@ -30,8 +30,8 @@ async function isAngularComponent(targetPath: string): Promise<boolean> {
     return isComponentFolder;
 }
 async function isAngularService(targetPath: string): Promise<boolean> {
-    if (!(await isDirectory(targetPath))){
-        targetPath=path.dirname(targetPath);
+    if (!(await isDirectory(targetPath))) {
+        targetPath = path.dirname(targetPath);
     }
     const files = await vscode.workspace.fs.readDirectory(vscode.Uri.file(targetPath));
 
@@ -40,47 +40,47 @@ async function isAngularService(targetPath: string): Promise<boolean> {
 }
 
 async function isAngularGuard(targetPath: string): Promise<boolean> {
-    if (!(await isDirectory(targetPath))){
-        targetPath=path.dirname(targetPath);
+    if (!(await isDirectory(targetPath))) {
+        targetPath = path.dirname(targetPath);
     }
     const files = await vscode.workspace.fs.readDirectory(vscode.Uri.file(targetPath));
     const hasGuardTs = files.some(([name]) => name.endsWith('.component.ts'));
     return hasGuardTs;
 }
 async function isAngularPipe(targetPath: string): Promise<boolean> {
-    if (!(await isDirectory(targetPath))){
-        targetPath=path.dirname(targetPath);
+    if (!(await isDirectory(targetPath))) {
+        targetPath = path.dirname(targetPath);
     }
     const files = await vscode.workspace.fs.readDirectory(vscode.Uri.file(targetPath));
     const hasPipeTs = files.some(([name]) => name.endsWith('.pipe.ts'));
     return hasPipeTs;
 }
 async function isAngularDirective(targetPath: string): Promise<boolean> {
-    if (!(await isDirectory(targetPath))){
-        targetPath=path.dirname(targetPath);
+    if (!(await isDirectory(targetPath))) {
+        targetPath = path.dirname(targetPath);
     }
     const files = await vscode.workspace.fs.readDirectory(vscode.Uri.file(targetPath));
     const hasDirectiveTs = files.some(([name]) => name.endsWith('.directive.ts'));
     return hasDirectiveTs;
 }
-async function isAngularProject():Promise<boolean>{
+async function isAngularProject(): Promise<boolean> {
     const workspaceFile = vscode.workspace.workspaceFile;
     // check if contain angular.json
     if (workspaceFile) {
         const workspacePath = path.dirname(workspaceFile.fsPath);
         const files = await vscode.workspace.fs.readDirectory(vscode.Uri.file(workspacePath));
-        
+
         const hasAngularJson = files.some(([name]) => {
             console.log(`msg: ${name}`);
             return name === 'angular.json';
         });
         return hasAngularJson;
     }
-    
+
     return false;
 
 }
-async function checkOldFile(path:string):Promise<boolean>{
+async function checkOldFile(path: string): Promise<boolean> {
     // check if path is exists
     try {
         await vscode.workspace.fs.stat(vscode.Uri.file(path));
@@ -89,7 +89,25 @@ async function checkOldFile(path:string):Promise<boolean>{
     } catch (error) {
         return false;
     }
-    
+
+}
+async function isAngularWorkspace(): Promise<boolean> {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        return false;
+    }
+
+    const rootPath = workspaceFolders[0].uri.fsPath;
+    const packageJsonUri = vscode.Uri.file(`${rootPath}/package.json`);
+
+    try {
+        const packageJsonContent = await vscode.workspace.fs.readFile(packageJsonUri);
+        const packageJson = JSON.parse(packageJsonContent.toString());
+        return packageJson.dependencies && '@angular/core' in packageJson.dependencies;
+    } catch (error) {
+        console.error('Error reading package.json:', error);
+        return false;
+    }
 }
 export {
     isAngularComponent,
@@ -99,6 +117,7 @@ export {
     isAngularService,
     isAngularGuard,
     isAngularPipe,
-    isAngularDirective
-    
+    isAngularDirective,
+    isAngularWorkspace,
+
 };

@@ -19,6 +19,7 @@ jest.mock('../components', () => ({
 jest.mock('../general', () => ({
   isAngularComponent: jest.fn(),
   handler: jest.fn(),
+  isAngularWorkspace: jest.fn(),
 }));
 
 describe('Extension Activation', () => {
@@ -33,13 +34,27 @@ describe('Extension Activation', () => {
     jest.clearAllMocks();
   });
 
-  it('should register onDidRenameFiles event handler', () => {
-    activate(mockContext);
+  it('should not activate for non-Angular workspace', async () => {
+    (General.isAngularWorkspace as jest.Mock).mockResolvedValue(false);
+    
+    await activate(mockContext);
+    
+    expect(General.isAngularWorkspace).toHaveBeenCalled();
+    expect(vscode.workspace.onDidRenameFiles).not.toHaveBeenCalled();
+  });
+
+  it('should activate for Angular workspace', async () => {
+    (General.isAngularWorkspace as jest.Mock).mockResolvedValue(true);
+    
+    await activate(mockContext);
+    
+    expect(General.isAngularWorkspace).toHaveBeenCalled();
     expect(vscode.workspace.onDidRenameFiles).toHaveBeenCalled();
   });
 
   it('should call componentHandler for Angular component files', async () => {
-    activate(mockContext);
+    (General.isAngularWorkspace as jest.Mock).mockResolvedValue(true);
+    await activate(mockContext);
 
     const mockFile = {
       oldUri: vscode.Uri.file('/old/path/component.ts'),
@@ -57,7 +72,8 @@ describe('Extension Activation', () => {
   });
 
   it('should call general handler for non-Angular component files', async () => {
-    activate(mockContext);
+    (General.isAngularWorkspace as jest.Mock).mockResolvedValue(true);
+    await activate(mockContext);
 
     const mockFile = {
       oldUri: vscode.Uri.file('/old/path/service.ts'),
@@ -75,7 +91,8 @@ describe('Extension Activation', () => {
   });
 
   it('should handle multiple files in a single event', async () => {
-    activate(mockContext);
+    (General.isAngularWorkspace as jest.Mock).mockResolvedValue(true);
+    await activate(mockContext);
 
     const mockFiles = [
       {

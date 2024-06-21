@@ -8,7 +8,8 @@ import {
   isAngularService,
   isAngularGuard,
   isAngularPipe,
-  isAngularDirective
+  isAngularDirective,
+  isAngularWorkspace
 } from '../../general/checker';
 
 jest.mock('vscode', () => ({
@@ -17,14 +18,17 @@ jest.mock('vscode', () => ({
       stat: jest.fn(),
       readDirectory: jest.fn(),
       delete: jest.fn(),
+      readFile: jest.fn(),
     },
     workspaceFile: { fsPath: '/path/to/workspace/angular.code-workspace' },
+    workspaceFolders: [{ uri: { fsPath: '/test/path' } }],
   },
   Uri: {
     file: jest.fn((f) => ({ fsPath: f })),
   },
   FileType: {
     Directory: 2,
+    File: 1,
   },
   window: {
     showErrorMessage: jest.fn(),
@@ -34,6 +38,68 @@ jest.mock('vscode', () => ({
 jest.mock('path', () => ({
   dirname: jest.fn((p) => p.split('/').slice(0, -1).join('/')),
 }));
+
+
+describe('isAngularWorkspace', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should return false when there are no workspace folders', async () => {
+    (vscode.workspace.workspaceFolders as any) = undefined;
+    
+    const result = await isAngularWorkspace();
+    
+    expect(result).toBe(false);
+  });
+
+  it('should return true for an Angular workspace', async () => {
+    const mockPackageJson = {
+      dependencies: {
+        '@angular/core': '12.0.0'
+      }
+    };
+    
+    (vscode.workspace.fs.readFile as jest.Mock).mockResolvedValue(Buffer.from(JSON.stringify(mockPackageJson)));
+
+    const result = await isAngularWorkspace();
+
+    expect(result).toBe(true);
+    expect(vscode.Uri.file).toHaveBeenCalledWith('/test/path/package.json');
+    expect(vscode.workspace.fs.readFile).toHaveBeenCalled();
+  });
+
+  it('should return false for a non-Angular workspace', async () => {
+    const mockPackageJson = {
+      dependencies: {
+        'react': '17.0.2'
+      }
+    };
+
+    (vscode.workspace.fs.readFile as jest.Mock).mockResolvedValue(Buffer.from(JSON.stringify(mockPackageJson)));
+
+    const result = await isAngularWorkspace();
+
+    expect(result).toBe(false);
+  });
+
+  it('should return false when package.json is not found', async () => {
+    (vscode.workspace.fs.readFile as jest.Mock).mockRejectedValue(new Error('File not found'));
+
+    const result = await isAngularWorkspace();
+
+    expect(result).toBe(false);
+  });
+
+  it('should return false when package.json is invalid JSON', async () => {
+    (vscode.workspace.fs.readFile as jest.Mock).mockResolvedValue(Buffer.from('invalid json'));
+
+    const result = await isAngularWorkspace();
+
+    expect(result).toBe(false);
+  });
+});
+
 
 describe('Angular Structure Check Functions', () => {
   beforeEach(() => {

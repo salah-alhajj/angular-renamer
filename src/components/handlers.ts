@@ -10,7 +10,6 @@ import { extractImports, getImportLines } from '../general/utilities';
 async function replaceInProject(newName: string, type: string, oldClassName: string, oldName: string | null): Promise<void> {
     const newClassName = General.getClassName(newName, type);
     const workspaceRoot = vscode.workspace.rootPath;
-
     if (!workspaceRoot) {
         vscode.window.showErrorMessage('No workspace folder open.');
         return;
@@ -25,7 +24,6 @@ async function replaceInProject(newName: string, type: string, oldClassName: str
             if (!text.includes(oldClassName)) {
                 return;
             }
-
             const importLines = getImportLines(text, oldClassName);
             const imports = extractImports(importLines);
             for (const imp of imports) {
@@ -122,7 +120,7 @@ async function handleFile(file: any): Promise<void> {
     await vscode.workspace.fs.rename(vscode.Uri.file(folderPath),
         vscode.Uri.file(path.join(path.dirname(folderPath), newfileName)));
 
-    folderPath=path.join(path.dirname(folderPath),path.basename(newfileName).split('.')[0]);
+    folderPath = path.join(path.dirname(folderPath), path.basename(newfileName).split('.')[0]);
 
 
     const data = await vscode.workspace.fs.readFile(

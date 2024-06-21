@@ -17,7 +17,6 @@ function extractImports(importLines: string[]): ImportDetails[] {
             }
         }
     }
-
     return imports;
 }
 
