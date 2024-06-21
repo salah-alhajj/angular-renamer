@@ -9,6 +9,9 @@ module.exports = {
   },
   testMatch: ['**/test/**/*.test.ts'],
   moduleNameMapper: {
-    '^vscode$': '<rootDir>/node_modules/@types/vscode'
-  }
+    '^vscode$': '<rootDir>/src/__mocks__/vscode.ts'
+  },
+  rootDir: '.',
+  modulePaths: ['<rootDir>'],
+  moduleDirectories: ['node_modules', 'src']
 };

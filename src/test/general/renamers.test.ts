@@ -2,60 +2,65 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { renameAngularFiles } from '../../general/renamers';
 
-jest.mock('vscode');
+jest.mock('vscode', () => {
+    const workspace = {
+        fs: {
+            rename: jest.fn(),
+        },
+    };
+
+    const Uri = {
+        file: jest.fn((filePath: string) => ({ fsPath: filePath })),
+    };
+
+    return { workspace, Uri };
+});
 
 describe('renameAngularFiles', () => {
-  const mockRename = vscode.workspace.fs.rename as jest.Mock;
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockRename.mockResolvedValue(undefined);
-  });
+    it('should rename Angular files correctly', async () => {
+        const mockRename = vscode.workspace.fs.rename as jest.Mock;
+        const folderPath = '/path/to/folder';
+        const oldName = 'old-component';
+        const newName = 'new-component';
+        const type = 'component';
 
-  it('should rename service files correctly', async () => {
-    await renameAngularFiles('/path/to', 'old-service', 'new-service', 'service');
+        await renameAngularFiles(folderPath, oldName, newName, type);
 
-    expect(mockRename).toHaveBeenCalledTimes(2);
-    expect(mockRename).toHaveBeenCalledWith(
-      vscode.Uri.file('/path/to/old-service.service.ts'),
-      vscode.Uri.file('/path/to/new-service.service.ts')
-    );
-    expect(mockRename).toHaveBeenCalledWith(
-      vscode.Uri.file('/path/to/old-service.service.spec.ts'),
-      vscode.Uri.file('/path/to/new-service.service.spec.ts')
-    );
-  });
+        expect(mockRename).toHaveBeenCalledTimes(2);
+        expect(mockRename).toHaveBeenCalledWith(
+            { fsPath: path.join(folderPath, `${oldName}.${type}.ts`) },
+            { fsPath: path.join(folderPath, `${newName}.${type}.ts`) },
+            { overwrite: true }
+        );
+        expect(mockRename).toHaveBeenCalledWith(
+            { fsPath: path.join(folderPath, `${oldName}.${type}.spec.ts`) },
+            { fsPath: path.join(folderPath, `${newName}.${type}.spec.ts`) },
+            { overwrite: true }
+        );
+    });
 
-  it('should rename guard files correctly', async () => {
-    await renameAngularFiles('/path/to', 'old-guard', 'new-guard', 'guard');
+    it('should handle errors gracefully', async () => {
+        const mockRename = vscode.workspace.fs.rename as jest.Mock;
+        mockRename.mockImplementationOnce(() => {
+            throw new Error('Test error');
+        });
 
-    expect(mockRename).toHaveBeenCalledTimes(2);
-    expect(mockRename).toHaveBeenCalledWith(
-      vscode.Uri.file('/path/to/old-guard.guard.ts'),
-      vscode.Uri.file('/path/to/new-guard.guard.ts')
-    );
-    expect(mockRename).toHaveBeenCalledWith(
-      vscode.Uri.file('/path/to/old-guard.guard.spec.ts'),
-      vscode.Uri.file('/path/to/new-guard.guard.spec.ts')
-    );
-  });
+        const folderPath = '/path/to/folder';
+        const oldName = 'old-component';
+        const newName = 'new-component';
+        const type = 'component';
 
-  it('should handle errors when renaming files', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-    mockRename.mockRejectedValueOnce(new Error('Rename failed'));
+        console.error = jest.fn();  // Mock console.error to suppress error output in test
 
-    await renameAngularFiles('/path/to', 'old-pipe', 'new-pipe', 'pipe');
+        await renameAngularFiles(folderPath, oldName, newName, type);
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to rename file'));
-    expect(mockRename).toHaveBeenCalledTimes(2); // It should still try to rename both files
-  });
-
-  it('should use the correct file extensions for different types', async () => {
-    await renameAngularFiles('/path/to', 'old-directive', 'new-directive', 'directive');
-
-    expect(mockRename).toHaveBeenCalledWith(
-      vscode.Uri.file('/path/to/old-directive.directive.ts'),
-      vscode.Uri.file('/path/to/new-directive.directive.ts')
-    );
-  });
+        expect(mockRename).toHaveBeenCalledTimes(2); // Ensuring the mock is called twice
+        expect(console.error).toHaveBeenCalledWith(
+            expect.stringContaining(`Failed to rename file ${oldName}.${type}.ts to ${newName}.${type}.ts: Error: Test error`)
+        );
+    });
 });

@@ -1,29 +1,68 @@
 import * as vscode from 'vscode';
-import { isDirectory, isAngularComponent, isAngularProject, checkOldFile } from '../../general';
+import * as path from 'path';
+import {
+  isAngularComponent,
+  isDirectory,
+  isAngularProject,
+  checkOldFile,
+  isAngularService,
+  isAngularGuard,
+  isAngularPipe,
+  isAngularDirective
+} from '../../general/checker';
 
-jest.mock('vscode');
+jest.mock('vscode', () => ({
+  workspace: {
+    fs: {
+      stat: jest.fn(),
+      readDirectory: jest.fn(),
+      delete: jest.fn(),
+    },
+    workspaceFile: { fsPath: '/path/to/workspace/angular.code-workspace' },
+  },
+  Uri: {
+    file: jest.fn((f) => ({ fsPath: f })),
+  },
+  FileType: {
+    Directory: 2,
+  },
+  window: {
+    showErrorMessage: jest.fn(),
+  },
+}));
 
-describe('Checker functions', () => {
+jest.mock('path', () => ({
+  dirname: jest.fn((p) => p.split('/').slice(0, -1).join('/')),
+}));
+
+describe('Angular Structure Check Functions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('isDirectory', () => {
-    it('should return true for directories', async () => {
+    it('should return true for a directory', async () => {
       (vscode.workspace.fs.stat as jest.Mock).mockResolvedValue({ type: vscode.FileType.Directory });
       const result = await isDirectory('/path/to/dir');
       expect(result).toBe(true);
     });
 
-    it('should return false for files', async () => {
+    it('should return false for a file', async () => {
       (vscode.workspace.fs.stat as jest.Mock).mockResolvedValue({ type: vscode.FileType.File });
-      const result = await isDirectory('/path/to/file');
+      const result = await isDirectory('/path/to/file.ts');
       expect(result).toBe(false);
+    });
+
+    it('should handle errors', async () => {
+      (vscode.workspace.fs.stat as jest.Mock).mockRejectedValue(new Error('File not found'));
+      const result = await isDirectory('/path/to/nonexistent');
+      expect(result).toBe(false);
+      expect(vscode.window.showErrorMessage).toHaveBeenCalled();
     });
   });
 
   describe('isAngularComponent', () => {
-    it('should return true for Angular component directories', async () => {
+    it('should return true for an Angular component directory', async () => {
       (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue([
         ['component.component.ts', vscode.FileType.File],
         ['component.component.html', vscode.FileType.File],
@@ -33,18 +72,90 @@ describe('Checker functions', () => {
       expect(result).toBe(true);
     });
 
-    it('should return false for non-component directories', async () => {
+    it('should return false for a non-component directory', async () => {
       (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue([
         ['file.ts', vscode.FileType.File],
+        ['file.html', vscode.FileType.File],
       ]);
       const result = await isAngularComponent('/path/to/non-component');
       expect(result).toBe(false);
     });
   });
 
+  describe('isAngularService', () => {
+    it('should return true for an Angular service file', async () => {
+      (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue([
+        ['service.service.ts', vscode.FileType.File],
+      ]);
+      const result = await isAngularService('/path/to/service.service.ts');
+      expect(result).toBe(true);
+    });
+
+    it('should return false for a non-service file', async () => {
+      (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue([
+        ['file.ts', vscode.FileType.File],
+      ]);
+      const result = await isAngularService('/path/to/file.ts');
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('isAngularGuard', () => {
+    it('should return true for an Angular guard file', async () => {
+      (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue([
+        ['guard.component.ts', vscode.FileType.File],
+      ]);
+      const result = await isAngularGuard('/path/to/guard.guard.ts');
+      expect(result).toBe(true);
+    });
+
+    it('should return false for a non-guard file', async () => {
+      (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue([
+        ['file.ts', vscode.FileType.File],
+      ]);
+      const result = await isAngularGuard('/path/to/file.ts');
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('isAngularPipe', () => {
+    it('should return true for an Angular pipe file', async () => {
+      (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue([
+        ['pipe.pipe.ts', vscode.FileType.File],
+      ]);
+      const result = await isAngularPipe('/path/to/pipe.pipe.ts');
+      expect(result).toBe(true);
+    });
+
+    it('should return false for a non-pipe file', async () => {
+      (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue([
+        ['file.ts', vscode.FileType.File],
+      ]);
+      const result = await isAngularPipe('/path/to/file.ts');
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('isAngularDirective', () => {
+    it('should return true for an Angular directive file', async () => {
+      (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue([
+        ['directive.directive.ts', vscode.FileType.File],
+      ]);
+      const result = await isAngularDirective('/path/to/directive.directive.ts');
+      expect(result).toBe(true);
+    });
+
+    it('should return false for a non-directive file', async () => {
+      (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue([
+        ['file.ts', vscode.FileType.File],
+      ]);
+      const result = await isAngularDirective('/path/to/file.ts');
+      expect(result).toBe(false);
+    });
+  });
+
   describe('isAngularProject', () => {
-    it('should return true if angular.json exists', async () => {
-      (vscode.workspace.workspaceFile as any) = { fsPath: '/path/to/workspace.code-workspace' };
+    it('should return true for an Angular project', async () => {
       (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue([
         ['angular.json', vscode.FileType.File],
       ]);
@@ -52,25 +163,29 @@ describe('Checker functions', () => {
       expect(result).toBe(true);
     });
 
-    it('should return false if angular.json does not exist', async () => {
-      (vscode.workspace.workspaceFile as any) = { fsPath: '/path/to/workspace.code-workspace' };
-      (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue([]);
+    it('should return false for a non-Angular project', async () => {
+      (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue([
+        ['package.json', vscode.FileType.File],
+      ]);
       const result = await isAngularProject();
       expect(result).toBe(false);
     });
   });
 
   describe('checkOldFile', () => {
-    it('should delete old file if it exists', async () => {
+    it('should return true and delete the file if it exists', async () => {
       (vscode.workspace.fs.stat as jest.Mock).mockResolvedValue({});
-      await checkOldFile('/path/to/old/file');
+      (vscode.workspace.fs.delete as jest.Mock).mockResolvedValue(undefined);
+      const result = await checkOldFile('/path/to/old-file.ts');
+      expect(result).toBe(true);
       expect(vscode.workspace.fs.delete).toHaveBeenCalled();
     });
 
-    it('should return false if old file does not exist', async () => {
+    it('should return false if the file does not exist', async () => {
       (vscode.workspace.fs.stat as jest.Mock).mockRejectedValue(new Error('File not found'));
-      const result = await checkOldFile('/path/to/nonexistent/file');
+      const result = await checkOldFile('/path/to/nonexistent-file.ts');
       expect(result).toBe(false);
+      expect(vscode.workspace.fs.delete).not.toHaveBeenCalled();
     });
   });
 });

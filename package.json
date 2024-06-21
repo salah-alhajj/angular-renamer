@@ -46,7 +46,7 @@
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile && npm run lint",
-    "check-types": "tsc --noEmit",
+    "check-types": "tsc --noEmit --project tsconfig.json",
     "lint": "eslint src --ext ts",
     "test": "jest"
   },

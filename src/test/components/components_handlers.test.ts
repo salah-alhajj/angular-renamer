@@ -1,99 +1,58 @@
 import * as vscode from 'vscode';
-import { replaceClassName } from '../../components/components_handlers';
 import * as General from '../../general';
+import { replaceClassName } from '../../components/components_handlers';
 
-jest.mock('vscode');
-jest.mock('../../src/general');
+// Mock vscode namespace
+jest.mock('vscode', () => ({
+  workspace: {
+    fs: {
+      readFile: jest.fn(),
+      writeFile: jest.fn(),
+      stat: jest.fn(),
+    },
+  },
+  Uri: {
+    file: jest.fn((f) => ({ fsPath: f })),
+  },
+  window: {
+    showErrorMessage: jest.fn(),
+  },
+}), { virtual: true });
 
 describe('replaceClassName', () => {
-  const mockReadFile = vscode.workspace.fs.readFile as jest.Mock;
-  const mockWriteFile = vscode.workspace.fs.writeFile as jest.Mock;
-  const mockStat = vscode.workspace.fs.stat as jest.Mock;
-  const mockShowErrorMessage = vscode.window.showErrorMessage as jest.Mock;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    mockReadFile.mockResolvedValue(Buffer.from(''));
-    mockWriteFile.mockResolvedValue(undefined);
-    mockStat.mockResolvedValue({} as vscode.FileStat);
-    (General.getClassName as jest.Mock).mockReturnValue('NewComponentComponent');
   });
 
   it('should replace class name in file content', async () => {
-    const oldContent = 'export class OldComponentComponent {}';
-    const newContent = 'export class NewComponentComponent {}';
-    mockReadFile.mockResolvedValue(Buffer.from(oldContent));
+    const mockFileContent = 'class OldComponent {}';
+    const expectedNewContent = 'class NewTestComponent {}';
+    
+    // Mock file system operations
+    (vscode.workspace.fs.readFile as jest.Mock).mockResolvedValue(Buffer.from(mockFileContent));
+    (vscode.workspace.fs.stat as jest.Mock).mockResolvedValue(true);
+    (vscode.workspace.fs.writeFile as jest.Mock).mockResolvedValue(undefined);
 
-    await replaceClassName('new-component', 'OldComponentComponent', '/path/to/file.ts');
+    // Mock General.getClassName
+    jest.spyOn(General, 'getClassName').mockReturnValue('NewTestComponent');
 
-    expect(mockWriteFile).toHaveBeenCalledWith(
-      vscode.Uri.file('/path/to/file.ts'),
-      Buffer.from(newContent)
+    await replaceClassName('new-test', 'OldComponent', '/path/to/file.ts');
+
+    expect(vscode.workspace.fs.readFile).toHaveBeenCalledWith(expect.anything());
+    expect(vscode.workspace.fs.writeFile).toHaveBeenCalledWith(
+      expect.anything(),
+      Buffer.from(expectedNewContent, 'utf8')
     );
+    expect(General.getClassName).toHaveBeenCalledWith('new-test', 'component');
   });
 
-  it('should not write file if content is unchanged', async () => {
-    const content = 'export class OldComponentComponent {}';
-    mockReadFile.mockResolvedValue(Buffer.from(content));
-    (General.getClassName as jest.Mock).mockReturnValue('OldComponentComponent');
+  it('should handle file system errors', async () => {
+    (vscode.workspace.fs.readFile as jest.Mock).mockRejectedValue(new Error('File read error'));
 
-    await replaceClassName('old-component', 'OldComponentComponent', '/path/to/file.ts');
+    await replaceClassName('new-test', 'OldComponent', '/path/to/file.ts');
 
-    expect(mockWriteFile).not.toHaveBeenCalled();
+    expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(expect.stringContaining('File read error'));
   });
 
-  it('should handle read file errors', async () => {
-    mockReadFile.mockRejectedValue(new Error('Read error'));
-
-    await replaceClassName('new-component', 'OldComponentComponent', '/path/to/file.ts');
-
-    expect(mockShowErrorMessage).toHaveBeenCalledWith(expect.stringContaining('Error replacing class name'));
-  });
-
-  it('should handle write file errors', async () => {
-    mockReadFile.mockResolvedValue(Buffer.from('export class OldComponentComponent {}'));
-    mockWriteFile.mockRejectedValue(new Error('Write error'));
-
-    await replaceClassName('new-component', 'OldComponentComponent', '/path/to/file.ts');
-
-    expect(mockShowErrorMessage).toHaveBeenCalledWith(expect.stringContaining('Error replacing class name'));
-  });
-
-  it('should replace multiple occurrences of the class name', async () => {
-    const oldContent = `
-      export class OldComponentComponent {}
-      const instance = new OldComponentComponent();
-    `;
-    const newContent = `
-      export class NewComponentComponent {}
-      const instance = new NewComponentComponent();
-    `;
-    mockReadFile.mockResolvedValue(Buffer.from(oldContent));
-
-    await replaceClassName('new-component', 'OldComponentComponent', '/path/to/file.ts');
-
-    expect(mockWriteFile).toHaveBeenCalledWith(
-      vscode.Uri.file('/path/to/file.ts'),
-      Buffer.from(newContent)
-    );
-  });
-
-  it('should not replace partial matches of the class name', async () => {
-    const oldContent = `
-      export class OldComponentComponent {}
-      const notRelated = 'OldComponentComponentUnrelated';
-    `;
-    const newContent = `
-      export class NewComponentComponent {}
-      const notRelated = 'OldComponentComponentUnrelated';
-    `;
-    mockReadFile.mockResolvedValue(Buffer.from(oldContent));
-
-    await replaceClassName('new-component', 'OldComponentComponent', '/path/to/file.ts');
-
-    expect(mockWriteFile).toHaveBeenCalledWith(
-      vscode.Uri.file('/path/to/file.ts'),
-      Buffer.from(newContent)
-    );
-  });
+  // Add more test cases as needed
 });

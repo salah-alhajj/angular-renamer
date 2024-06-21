@@ -95,5 +95,10 @@ export {
     isAngularComponent,
     isDirectory,
     isAngularProject,
-    checkOldFile
+    checkOldFile,
+    isAngularService,
+    isAngularGuard,
+    isAngularPipe,
+    isAngularDirective
+    
 };

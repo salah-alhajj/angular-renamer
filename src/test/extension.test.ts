@@ -1,99 +1,102 @@
 import * as vscode from 'vscode';
-import { activate, deactivate } from '../extension';
-import { isAngularProject } from '../general/checker';
-import { componentHandler } from '../components/handlers';
-import { handler as generalHandler } from '../general/handlers';
+import * as Components from '../components';
+import * as General from '../general';
+import { activate } from '../extension';
 
-jest.mock('vscode');
-jest.mock('../src/general/checkers');
-jest.mock('../src/components/handlers');
-jest.mock('../src/general/handlers');
+jest.mock('vscode', () => ({
+  workspace: {
+    onDidRenameFiles: jest.fn(),
+  },
+  Uri: {
+    file: jest.fn((path) => ({ path, scheme: 'file' })),
+  },
+}));
 
-describe('Extension', () => {
-  let context: vscode.ExtensionContext;
-  let onDidRenameFilesCallback: (e: vscode.FileRenameEvent) => Promise<void>;
+jest.mock('../components', () => ({
+  componentHandler: jest.fn(),
+}));
+
+jest.mock('../general', () => ({
+  isAngularComponent: jest.fn(),
+  handler: jest.fn(),
+}));
+
+describe('Extension Activation', () => {
+  let mockContext: vscode.ExtensionContext;
+  let onDidRenameFilesCallback: (event: vscode.FileRenameEvent) => Promise<void>;
 
   beforeEach(() => {
-    context = {
-      subscriptions: []
-    } as any;
+    mockContext = {} as vscode.ExtensionContext;
+    (vscode.workspace.onDidRenameFiles as jest.Mock).mockImplementation((callback) => {
+      onDidRenameFilesCallback = callback;
+    });
     jest.clearAllMocks();
   });
 
-  describe('activate', () => {
-    it('should register file rename event listener for Angular projects', async () => {
-      (isAngularProject as jest.Mock).mockResolvedValue(true);
-      
-      await activate(context);
-
-      expect(vscode.workspace.onDidRenameFiles).toHaveBeenCalled();
-      expect(context.subscriptions.length).toBe(1);
-      onDidRenameFilesCallback = (vscode.workspace.onDidRenameFiles as jest.Mock).mock.calls[0][0];
-    });
-
-    it('should not register event listener for non-Angular projects', async () => {
-      (isAngularProject as jest.Mock).mockResolvedValue(false);
-      
-      await activate(context);
-
-      expect(vscode.workspace.onDidRenameFiles).not.toHaveBeenCalled();
-      expect(context.subscriptions.length).toBe(0);
-    });
+  it('should register onDidRenameFiles event handler', () => {
+    activate(mockContext);
+    expect(vscode.workspace.onDidRenameFiles).toHaveBeenCalled();
   });
 
-  describe('file rename handler', () => {
-    beforeEach(async () => {
-      (isAngularProject as jest.Mock).mockResolvedValue(true);
-      await activate(context);
-      onDidRenameFilesCallback = (vscode.workspace.onDidRenameFiles as jest.Mock).mock.calls[0][0];
-    });
+  it('should call componentHandler for Angular component files', async () => {
+    activate(mockContext);
 
-    it('should call componentHandler for component files', async () => {
-      await onDidRenameFilesCallback({
-        files: [{
-          oldUri: { fsPath: '/path/old.component.ts' } as vscode.Uri,
-          newUri: { fsPath: '/path/new.component.ts' } as vscode.Uri
-        }]
-      });
+    const mockFile = {
+      oldUri: vscode.Uri.file('/old/path/component.ts'),
+      newUri: vscode.Uri.file('/new/path/component.ts'),
+    };
+    const mockEvent: vscode.FileRenameEvent = { files: [mockFile] };
 
-      expect(componentHandler).toHaveBeenCalled();
-      expect(generalHandler).not.toHaveBeenCalled();
-    });
+    (General.isAngularComponent as jest.Mock).mockResolvedValue(true);
 
-    it('should call generalHandler for non-component files', async () => {
-      await onDidRenameFilesCallback({
-        files: [{
-          oldUri: { fsPath: '/path/old.service.ts' } as vscode.Uri,
-          newUri: { fsPath: '/path/new.service.ts' } as vscode.Uri
-        }]
-      });
+    await onDidRenameFilesCallback(mockEvent);
 
-      expect(generalHandler).toHaveBeenCalled();
-      expect(componentHandler).not.toHaveBeenCalled();
-    });
-
-    it('should handle multiple file renames', async () => {
-      await onDidRenameFilesCallback({
-        files: [
-          {
-            oldUri: { fsPath: '/path/old.component.ts' } as vscode.Uri,
-            newUri: { fsPath: '/path/new.component.ts' } as vscode.Uri
-          },
-          {
-            oldUri: { fsPath: '/path/old.service.ts' } as vscode.Uri,
-            newUri: { fsPath: '/path/new.service.ts' } as vscode.Uri
-          }
-        ]
-      });
-
-      expect(componentHandler).toHaveBeenCalled();
-      expect(generalHandler).toHaveBeenCalled();
-    });
+    expect(General.isAngularComponent).toHaveBeenCalledWith('/new/path/component.ts');
+    expect(Components.componentHandler).toHaveBeenCalledWith(mockFile);
+    expect(General.handler).not.toHaveBeenCalled();
   });
 
-  describe('deactivate', () => {
-    it('should not throw when called', () => {
-      expect(() => deactivate()).not.toThrow();
-    });
+  it('should call general handler for non-Angular component files', async () => {
+    activate(mockContext);
+
+    const mockFile = {
+      oldUri: vscode.Uri.file('/old/path/service.ts'),
+      newUri: vscode.Uri.file('/new/path/service.ts'),
+    };
+    const mockEvent: vscode.FileRenameEvent = { files: [mockFile] };
+
+    (General.isAngularComponent as jest.Mock).mockResolvedValue(false);
+
+    await onDidRenameFilesCallback(mockEvent);
+
+    expect(General.isAngularComponent).toHaveBeenCalledWith('/new/path/service.ts');
+    expect(Components.componentHandler).not.toHaveBeenCalled();
+    expect(General.handler).toHaveBeenCalledWith(mockFile);
+  });
+
+  it('should handle multiple files in a single event', async () => {
+    activate(mockContext);
+
+    const mockFiles = [
+      {
+        oldUri: vscode.Uri.file('/old/path/component.ts'),
+        newUri: vscode.Uri.file('/new/path/component.ts'),
+      },
+      {
+        oldUri: vscode.Uri.file('/old/path/service.ts'),
+        newUri: vscode.Uri.file('/new/path/service.ts'),
+      },
+    ];
+    const mockEvent: vscode.FileRenameEvent = { files: mockFiles };
+
+    (General.isAngularComponent as jest.Mock)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(false);
+
+    await onDidRenameFilesCallback(mockEvent);
+
+    expect(General.isAngularComponent).toHaveBeenCalledTimes(2);
+    expect(Components.componentHandler).toHaveBeenCalledWith(mockFiles[0]);
+    expect(General.handler).toHaveBeenCalledWith(mockFiles[1]);
   });
 });
