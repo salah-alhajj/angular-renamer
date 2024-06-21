@@ -20,4 +20,4 @@ async function renameAngularFiles(folderPath: string, oldName: string, newName: 
 
 export {
     renameAngularFiles,
-}
+};

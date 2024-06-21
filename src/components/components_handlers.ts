@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as General from '../general'
+import * as General from '../general';
 
 
 async function replaceClassName(
@@ -34,4 +34,4 @@ async function replaceClassName(
 
 export {
     replaceClassName,
-}
+};

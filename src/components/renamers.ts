@@ -42,4 +42,4 @@ async function renameAngularComponentFiles(folderPath: string, oldComponentName:
 }
 export{
     renameAngularComponentFiles,
-}
+};

@@ -10,7 +10,7 @@ export function activate(context: vscode.ExtensionContext) {
                 await Components.componentHandler(file);
             } 
             else {
-                await General.handler(file)
+                await General.handler(file);
                 
             }            
         }

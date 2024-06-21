@@ -63,12 +63,12 @@ async function componentHandler(file: any): Promise<void> {
     const isNewDir = await isDirectory(file.newUri);
     if (isNewDir) {
         await handleDir(file);
-        await General.checkOldFile(file.oldUri.path)
+        await General.checkOldFile(file.oldUri.path);
 
     } else {
 
         await handleFile(file);
-        await General.checkOldFile(path.dirname(file.oldUri.path))
+        await General.checkOldFile(path.dirname(file.oldUri.path));
     }
 }
 async function handleDir(file: any): Promise<void> {
@@ -81,7 +81,7 @@ async function handleDir(file: any): Promise<void> {
                 path.basename(file.newUri.path) + '.component.ts'))
         );
         const text = Buffer.from(data).toString('utf8');
-        const oldClassName = extractExportedClasses(text, 'component')[0]
+        const oldClassName = extractExportedClasses(text, 'component')[0];
 
         try {
             await replaceClassName(newComponent,
@@ -97,7 +97,7 @@ async function handleDir(file: any): Promise<void> {
             await replaceInProject(path.basename(file.newUri.path),
                 'component', oldClassName,
                 oldComponent
-            )
+            );
         }
         catch (error) {
             vscode.window.showErrorMessage(`Error replacing in project: ${error}`);
@@ -105,7 +105,7 @@ async function handleDir(file: any): Promise<void> {
         }
     }
     catch (err) {
-        vscode.window.showErrorMessage(`Dir ${err}`)
+        vscode.window.showErrorMessage(`Dir ${err}`);
     }
 
 }
@@ -120,9 +120,9 @@ async function handleFile(file: any): Promise<void> {
 
 
     await vscode.workspace.fs.rename(vscode.Uri.file(folderPath),
-        vscode.Uri.file(path.join(path.dirname(folderPath), newfileName)))
+        vscode.Uri.file(path.join(path.dirname(folderPath), newfileName)));
 
-    folderPath=path.join(path.dirname(folderPath),path.basename(newfileName).split('.')[0])
+    folderPath=path.join(path.dirname(folderPath),path.basename(newfileName).split('.')[0]);
 
 
     const data = await vscode.workspace.fs.readFile(
@@ -130,7 +130,7 @@ async function handleFile(file: any): Promise<void> {
     );
 
     const text = Buffer.from(data).toString('utf8');
-    const oldClassName = extractExportedClasses(text, 'component')[0]
+    const oldClassName = extractExportedClasses(text, 'component')[0];
 
     await replaceClassName(newfileName, oldClassName, path.join(folderPath, newfileName + '.component.ts'));
 
@@ -140,10 +140,10 @@ async function handleFile(file: any): Promise<void> {
         'component',
         oldClassName,
         oldfileName
-    )
+    );
 
 
 
 }
 
-export { componentHandler }
+export { componentHandler };

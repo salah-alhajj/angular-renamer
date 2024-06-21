@@ -21,35 +21,29 @@ function extractImports(importLines: string[]): ImportDetails[] {
     return imports;
 }
 
-function getImportLines(code: string, query: string): string[] {
-    const lines = code.split('\n');
-    const importLines = lines.filter(line => line.trim().startsWith('import')
-        && line.trim().includes(query)
-
-    );
-    return importLines;
+ function getImportLines(code: string, query: string): string[] {
+  const lines = code.split('\n');
+  return lines.filter(line => line.trim().startsWith('import') && line.includes(query));
 }
 
-function extractExportedClasses(tsCode: string, type: string): string[] {
-    try {
-      const typeRegex = new RegExp(`${type.charAt(0).toUpperCase()}${type.slice(1).toLowerCase()}$`, 'i'); 
-      const classRegex = new RegExp(`export\\s+class\\s+(\\w+)`, 'g');
-      const classes: string[] = [];
-      let match;
-  
-      while ((match = classRegex.exec(tsCode)) !== null) {
-        if (typeRegex.test(match[1])) { 
-          classes.push(match[1]); 
-        }
-      }
-  
-      return classes;
-    } catch (e) {
-      return [];
+ function extractExportedClasses(tsCode: string, type: string): string[] {
+  const typeRegex = new RegExp(`${type}$`, 'i');
+  const classRegex = /export\s+class\s+(\w+)/g;
+  const classes: string[] = [];
+  let match;
+
+  while ((match = classRegex.exec(tsCode)) !== null) {
+    if (typeRegex.test(match[1])) {
+      classes.push(match[1]);
     }
   }
+
+  return classes;
+}
+
+
 export {
     extractImports,
     getImportLines,
     extractExportedClasses
-}  
+};  
