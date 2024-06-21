@@ -1,13 +1,5 @@
 import * as vscode from 'vscode';
-
-function getComponentClassName(componentFolderName: string): string {
-    let parts = componentFolderName.split('-');
-    let newClassName = '';
-    for (var part of parts) {
-        newClassName += part.charAt(0).toUpperCase() + part.slice(1);
-    }
-    return newClassName + 'Component';
-}
+import * as General from '../general'
 
 
 async function replaceClassName(
@@ -15,26 +7,27 @@ async function replaceClassName(
     oldClassNameComponent: string,
     filePath: string
 ): Promise<void> {
-    const newNameClassComponent = getComponentClassName(newComponentName);
-
+    const newNameClassComponent = General.getClassName(newComponentName,'component');
+    
     try {
         const data = await vscode.workspace.fs.readFile(vscode.Uri.file(filePath));
-        const text = Buffer
-            .from(data)
-            .toString('utf8');
+        const text = Buffer.from(data).toString('utf8');
 
         const classRegex = new RegExp(`\\b${oldClassNameComponent}\\b`, 'g');
         const newText = text.replace(classRegex, newNameClassComponent);
 
-        if (newText !== text) {
-            await vscode.workspace.fs.writeFile(
-                vscode.Uri.file(filePath),
-                Buffer.from(newText, 'utf8')
-            );
-        }
+
+            if (await vscode.workspace.fs.stat(vscode.Uri.file(filePath))) {
+                await vscode.workspace.fs.writeFile(
+                    vscode.Uri.file(filePath),
+                    Buffer.from(newText, 'utf8')
+                );
+            }
+            
+            
+        // }
     } catch (error) {
         vscode.window.showErrorMessage(`Error replacing class name: ${error}`);
-        throw error; // Re-throw the error to propagate it
     }
 }
 

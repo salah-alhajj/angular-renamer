@@ -4,7 +4,7 @@
   "icon":"assets/logo.png",
   "publisher": "salah-aldain",
   "description": "The Angular Renamer extension for Visual Studio Code is designed to simplify the process of renaming Angular components,pipe,directive,service. This extension automatically renames all along with all associated files and classes, saving you time and effort while ensuring consistency across your project.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engines": {
     "vscode": "^1.40.0"
     },

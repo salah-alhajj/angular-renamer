@@ -22,9 +22,11 @@ async function handler(file: any) {
         return Buffer.from(data).toString('utf8');
     });
     const oldClassName = extractExportedClasses(fileContent, type)[0]
-    await replaceClassNameV2(newName, oldClassName, type, filePath);
+    await replaceClassName(newName, oldClassName, type, filePath);
 
-    await replaceInProjectV2(oldName, newName, type, filePath, oldClassName);
+    await replaceInProject(oldName, newName, type, filePath, oldClassName);
+    
+
 }
 
 
@@ -35,30 +37,31 @@ function getClassName(name: string, type: string): string {
     type = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
     return newClassName + type;
 }
-async function replaceClassNameV2(
+async function replaceClassName(
     newName: string,
     oldClassName: string,
     type: string,
     filePath: string,
 
 ): Promise<void> {
+
     const newNameClassComponent = getClassName(newName, type);
 
     try {
-        const newClassName=getClassName(newName,'component')
         const data = await vscode.workspace.fs.readFile(vscode.Uri.file(filePath));
         const text = Buffer.from(data).toString('utf8');
 
-        
 
         const classRegex = new RegExp(`\\b${oldClassName}\\b`, 'g');
         const newText = text.replace(classRegex, newNameClassComponent);
 
         if (newText !== text) {
-            await vscode.workspace.fs.writeFile(
+            if (await vscode.workspace.fs.stat(vscode.Uri.file(filePath)
+            ))
+            {await vscode.workspace.fs.writeFile(
                 vscode.Uri.file(filePath),
                 Buffer.from(newText, 'utf8')
-            );
+            );}
         }
 
     
@@ -67,12 +70,11 @@ async function replaceClassNameV2(
         
     } catch (error) {
         vscode.window.showErrorMessage(`Error replacing class name: ${error}`);
-        throw error; // Re-throw the error to propagate it
     }
 }
 
 
-async function replaceInProjectV2(oldName: string, newName: string, type: string, newPath: string, oldClassName: string): Promise<void> {
+async function replaceInProject(oldName: string, newName: string, type: string, newPath: string, oldClassName: string): Promise<void> {
     // read file from newPath 
     const fileContent = await vscode.workspace.fs.readFile(vscode.Uri.file(newPath)).then((data) => {
         return Buffer.from(data).toString('utf8');

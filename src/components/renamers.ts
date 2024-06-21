@@ -34,7 +34,6 @@ async function renameAngularComponentFiles(folderPath: string, oldComponentName:
 
         try {
             await vscode.workspace.fs.rename(vscode.Uri.file(oldFilePath), vscode.Uri.file(newFilePath));
-            // thats mean style file is correct so finish loop
             break;
         } catch (error) {
         }

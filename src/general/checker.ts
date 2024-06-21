@@ -63,8 +63,25 @@ async function isAngularDirective(targetPath: string): Promise<boolean> {
     const hasDirectiveTs = files.some(([name]) => name.endsWith('.directive.ts'));
     return hasDirectiveTs;
 }
+async function isAngularProject():Promise<boolean>{
+    const workspaceFile = vscode.workspace.workspaceFile;
+    // check if contain angular.json
+    if (workspaceFile) {
+        const workspacePath = path.dirname(workspaceFile.fsPath);
+        const files = await vscode.workspace.fs.readDirectory(vscode.Uri.file(workspacePath));
+        
+        const hasAngularJson = files.some(([name]) => {
+            console.log(`msg: ${name}`)
+            return name === 'angular.json';
+        });
+        return hasAngularJson;
+    }
+    
+    return false;
 
+}
 export {
     isAngularComponent,
     isDirectory,
+    isAngularProject
 }
