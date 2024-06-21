@@ -7,8 +7,7 @@ import * as General from '../general';
 import { extractImports, getImportLines } from '../general/utilities';
 
 
-async function replaceInProject(newName: string, type: string, oldClassName: string,oldName:string|null): Promise<void> {
-
+async function replaceInProject(newName: string, type: string, oldClassName: string, oldName: string | null): Promise<void> {
     const newClassName = General.getClassName(newName, type);
     const workspaceRoot = vscode.workspace.rootPath;
 
@@ -24,22 +23,35 @@ async function replaceInProject(newName: string, type: string, oldClassName: str
             const data = await vscode.workspace.fs.readFile(fileUri);
             let text = Buffer.from(data).toString('utf8');
             if (!text.includes(oldClassName)) {
-                return
+                return;
             }
 
             const importLines = getImportLines(text, oldClassName);
             const imports = extractImports(importLines);
             for (const imp of imports) {
-                if (imp.path===`./${oldClassName}`)
                 if (imp.moduleName === oldClassName) {
-                    const oldImportPath = imp.path.split('/')[imp.path.split('/').length - 2] + '/' + imp.path.split('/')[imp.path.split('/').length - 1];
-                    const newImportPath = `${newName}/${newName}.component`
-                    text = text.replace(oldImportPath, newImportPath)
-                    text = text.replaceAll(new RegExp(`\\b${oldClassName}\\b`, 'g'), newClassName);
+                    const fileName = fileUri.fsPath.split('/').pop() || '';
+                    const isSpecFile = fileName.endsWith('.spec.ts');
 
+                    if (isSpecFile) {
+                        // For spec files, keep the relative import path
+                        text = text.replace(
+                            new RegExp(`import\\s*{\\s*${oldClassName}\\s*}\\s*from\\s*['"]./\\w+.component['"]`),
+                            `import { ${newClassName} } from './${newName}.component'`
+                        );
+                    } else {
+                        // For other files, use the full import path
+                        const oldImportPath = imp.path.split('/').slice(-2).join('/');
+                        const newImportPath = `${newName}/${newName}.component`;
+                        text = text.replace(oldImportPath, newImportPath);
+                    }
+
+                    text = text.replace(new RegExp(`\\b${oldClassName}\\b`, 'g'), newClassName);
                 }
             }
-            if (await vscode.workspace.fs.stat(fileUri)) { await vscode.workspace.fs.writeFile(fileUri, Buffer.from(text, 'utf8')); }
+            if (await vscode.workspace.fs.stat(fileUri)) {
+                await vscode.workspace.fs.writeFile(fileUri, Buffer.from(text, 'utf8'));
+            }
         } catch (error) {
             vscode.window.showErrorMessage(`Error processing file: ${fileUri.fsPath}, ${error}`);
         }
@@ -51,10 +63,12 @@ async function componentHandler(file: any): Promise<void> {
     const isNewDir = await isDirectory(file.newUri);
     if (isNewDir) {
         await handleDir(file);
+        await General.checkOldFile(file.oldUri.path)
 
     } else {
 
         await handleFile(file);
+        await General.checkOldFile(path.dirname(file.oldUri.path))
     }
 }
 async function handleDir(file: any): Promise<void> {

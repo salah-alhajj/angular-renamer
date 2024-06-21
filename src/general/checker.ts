@@ -80,8 +80,20 @@ async function isAngularProject():Promise<boolean>{
     return false;
 
 }
+async function checkOldFile(path:string):Promise<boolean>{
+    // check if path is exists
+    try {
+        await vscode.workspace.fs.stat(vscode.Uri.file(path));
+        await vscode.workspace.fs.delete(vscode.Uri.file(path), { recursive: true });
+        return true;
+    } catch (error) {
+        return false;
+    }
+    
+}
 export {
     isAngularComponent,
     isDirectory,
-    isAngularProject
+    isAngularProject,
+    checkOldFile
 }
