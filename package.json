@@ -4,7 +4,7 @@
   "icon": "assets/logo.png",
   "publisher": "salah-aldain",
   "description": "The Angular Renamer extension for Visual Studio Code is designed to simplify the process of renaming Angular components,pipe,directive,service. This extension automatically renames all along with all associated files and classes, saving you time and effort while ensuring consistency across your project.",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "engines": {
     "vscode": "^1.40.0"
   },
@@ -23,15 +23,50 @@
     "configuration": {
       "title": "Angular Renamer",
       "properties": {
-        "angular-renamer.renameSpecFileSettings": {
+        "angularRenamer.searchAndReplaceDeeply": {
           "type": "boolean",
           "default": true,
-          "description": "Rename the component's spec (test) file."
+          "description": "Enable deep search and replace throughout the entire project to ensure all references to renamed components, services, directives, and pipes are updated."
         },
-        "angular-renamer.renameComponentsProjectInProjectFilesSettings": {
+        "angularRenamer.updateImports": {
           "type": "boolean",
           "default": true,
-          "description": "Rename the component's class name in All Project"
+          "description": "Automatically update import statements when renaming components."
+        },
+        "angularRenamer.autoRenameClasses": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically rename classes in files to match the new component name."
+        },
+        "angularRenamer.renameComponents": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable automatic renaming of components."
+        },
+        "angularRenamer.renameServices": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable automatic renaming of services."
+        },"angularRenamer.renameGuards": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable automatic renaming of guards."
+        },
+        "angularRenamer.renameDirectives": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable automatic renaming of directives."
+        },
+        "angularRenamer.renamePipes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable automatic renaming of pipes."
+        },
+        
+        "angularRenamer.renameSpec": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable renaming of Spec files."
         }
       }
     }

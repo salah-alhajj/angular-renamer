@@ -2,16 +2,27 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { renameAngularFiles } from './renamers';
 import { extractExportedClasses, extractImports, getImportLines } from './utilities';
+import { getAngularRenamerSettings } from '../settings';
 
 
 async function handler(file: any) {
     const types = ['service', 'guard', 'pipe', 'directive'];
-
+    const settings = getAngularRenamerSettings();
     const type = types.find(t => file.oldUri.path.includes(`.${t}.ts`) ||
-        file.newUri.path.includes(`.${t}.spec.ts`)
+        (file.newUri.path.includes(`.${t}.spec.ts`) && settings.renameSpec)
     );
 
     if (!type) { return; }
+    if (type === 'service' && !settings.renameServices ||
+        type === 'pipe' && !settings.renamePipes ||
+        type === 'directive' && !settings.renameDirectives ||
+        type === 'guard' && !settings.renameGuards
+    ) {
+        return
+    }
+
+
+
     const filePath = file.newUri.path.replace('.spec.ts', '.ts');
     const oldName = path.basename(file.oldUri.path.replace('.spec.ts', '.ts')).split('.')[0];
     const newName = path.basename(filePath).split('.')[0];
@@ -118,6 +129,6 @@ export {
     handler,
     replaceClassName,
     replaceInProject,
-    
+
 
 };

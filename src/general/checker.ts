@@ -71,7 +71,6 @@ async function isAngularProject(): Promise<boolean> {
         const files = await vscode.workspace.fs.readDirectory(vscode.Uri.file(workspacePath));
 
         const hasAngularJson = files.some(([name]) => {
-            console.log(`msg: ${name}`);
             return name === 'angular.json';
         });
         return hasAngularJson;
