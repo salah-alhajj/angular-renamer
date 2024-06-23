@@ -24,7 +24,7 @@ async function replaceClassName(
             
         // }
     } catch (error) {
-        vscode.window.showErrorMessage(`Error replacing class name: ${error}`);
+        // vscode.window.showErrorMessage(`Error replacing class name: ${error}`);
     }
 }
 

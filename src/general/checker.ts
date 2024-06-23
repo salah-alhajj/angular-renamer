@@ -12,7 +12,7 @@ async function isDirectory(uri: vscode.Uri | string): Promise<boolean> {
         if (typeof uri === 'string') {
             uri = vscode.Uri.file(uri);
         }
-        vscode.window.showErrorMessage(`Error checking if ${uri.fsPath} is a directory: ${error}`);
+        // vscode.window.showErrorMessage(`Error checking if ${uri.fsPath} is a directory: ${error}`);
         return false;
     }
 }
@@ -82,6 +82,7 @@ async function isAngularProject(): Promise<boolean> {
 async function checkOldFile(path: string): Promise<boolean> {
     // check if path is exists
     try {
+        // vscode.window.showErrorMessage(`${vscode.Uri.file(path).path} Deleted`)
         await vscode.workspace.fs.stat(vscode.Uri.file(path));
         await vscode.workspace.fs.delete(vscode.Uri.file(path), { recursive: true });
         return true;

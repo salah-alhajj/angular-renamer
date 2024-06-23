@@ -8,12 +8,14 @@ export async function activate(context: vscode.ExtensionContext) {
     if (!await General.isAngularWorkspace()) {
         return;
     }
-    const settings = getAngularRenamerSettings();
+    
     vscode.workspace.onDidRenameFiles(async (event) => {
+        const settings = getAngularRenamerSettings();
         for (const file of event.files) {
-
             if (await General.isAngularComponent(file.newUri.path)) {
-                if (settings.renameComponents) { await Components.componentHandler(file); }
+                if (settings.renameComponents)
+                     { 
+                        await Components.componentHandler(file); }
                 else {
                     return
                 }

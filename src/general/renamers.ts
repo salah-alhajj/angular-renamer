@@ -11,7 +11,7 @@ async function renameAngularFiles(folderPath: string, oldName: string, newName: 
         try {
             const oldFilePath = path.join(folderPath, file.oldCF);
             const newFilePath = path.join(folderPath, file.newCF);
-            await vscode.workspace.fs.rename(vscode.Uri.file(oldFilePath), vscode.Uri.file(newFilePath), { overwrite: true });
+            await vscode.workspace.fs.rename(vscode.Uri.file(oldFilePath), vscode.Uri.file(newFilePath), );
         } catch (error) {
             console.error(`Failed to rename file ${file.oldCF} to ${file.newCF}: ${error}`);
         }

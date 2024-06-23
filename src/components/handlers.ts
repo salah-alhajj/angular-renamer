@@ -5,13 +5,14 @@ import { renameAngularComponentFiles } from './renamers';
 import { extractExportedClasses, isDirectory } from '../general';
 import * as General from '../general';
 import { extractImports, getImportLines } from '../general/utilities';
+import { getAngularRenamerSettings } from '../settings';
 
 
 async function replaceInProject(newName: string, type: string, oldClassName: string, oldName: string | null): Promise<void> {
     const newClassName = General.getClassName(newName, type);
     const workspaceRoot = vscode.workspace.rootPath;
     if (!workspaceRoot) {
-        vscode.window.showErrorMessage('No workspace folder open.');
+        //  vscode.window.showErrorMessage('No workspace folder open.');
         return;
     }
 
@@ -61,12 +62,12 @@ async function componentHandler(file: any): Promise<void> {
     const isNewDir = await isDirectory(file.newUri);
     if (isNewDir) {
         await handleDir(file);
-        await General.checkOldFile(file.oldUri.path);
+        // await General.checkOldFile(file.oldUri.path);
 
     } else {
 
         await handleFile(file);
-        await General.checkOldFile(path.dirname(file.oldUri.path));
+        // await General.checkOldFile(path.dirname(file.oldUri.path));
     }
 }
 async function handleDir(file: any): Promise<void> {
@@ -92,10 +93,11 @@ async function handleDir(file: any): Promise<void> {
 
 
         try {
-            await replaceInProject(path.basename(file.newUri.path),
+            if (getAngularRenamerSettings().searchAndReplaceDeeply)
+            {await replaceInProject(path.basename(file.newUri.path),
                 'component', oldClassName,
                 oldComponent
-            );
+            );}
         }
         catch (error) {
             vscode.window.showErrorMessage(`Error replacing in project: ${error}`);

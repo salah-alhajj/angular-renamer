@@ -13,6 +13,7 @@ async function handler(file: any) {
     );
 
     if (!type) { return; }
+    
     if (type === 'service' && !settings.renameServices ||
         type === 'pipe' && !settings.renamePipes ||
         type === 'directive' && !settings.renameDirectives ||
@@ -35,7 +36,10 @@ async function handler(file: any) {
     const oldClassName = extractExportedClasses(fileContent, type)[0];
     await replaceClassName(newName, oldClassName, type, filePath);
 
-    await replaceInProject(oldName, newName, type, filePath, oldClassName);
+    if (settings.searchAndReplaceDeeply)
+    {
+        await replaceInProject(oldName, newName, type, filePath, oldClassName)
+    }
 
 
 }
@@ -81,7 +85,7 @@ async function replaceClassName(
 
 
     } catch (error) {
-        vscode.window.showErrorMessage(`Error replacing class name: ${error}`);
+        // vscode.window.showErrorMessage(`Error replacing class name: ${error}`);
     }
 }
 
@@ -95,7 +99,7 @@ async function replaceInProject(oldName: string, newName: string, type: string, 
     const workspaceRoot = vscode.workspace.rootPath;
 
     if (!workspaceRoot) {
-        vscode.window.showErrorMessage('No workspace folder open.');
+        // vscode.window.showErrorMessage('No workspace folder open.');
         return;
     }
     const filesPattern = new vscode.RelativePattern(workspaceRoot, `src/**/*.ts`);
