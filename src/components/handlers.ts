@@ -8,8 +8,8 @@ import { extractImports, getImportLines } from '../general/utilities';
 import { getAngularRenamerSettings } from '../settings';
 
 
-async function replaceInProject(newName: string, type: string, oldClassName: string, oldName: string | null): Promise<void> {
-    const newClassName = General.getClassName(newName, type);
+async function replaceInProject(newName: string,  oldClassName: string, oldName: string | null): Promise<void> {
+    const newClassName = General.getClassName(newName, 'component');
     const workspaceRoot = vscode.workspace.rootPath;
     if (!workspaceRoot) {
         //  vscode.window.showErrorMessage('No workspace folder open.');
@@ -49,6 +49,7 @@ async function replaceInProject(newName: string, type: string, oldClassName: str
                 }
             }
             if (await vscode.workspace.fs.stat(fileUri)) {
+                
                 await vscode.workspace.fs.writeFile(fileUri, Buffer.from(text, 'utf8'));
             }
         } catch (error) {
@@ -95,7 +96,7 @@ async function handleDir(file: any): Promise<void> {
         try {
             if (getAngularRenamerSettings().searchAndReplaceDeeply)
             {await replaceInProject(path.basename(file.newUri.path),
-                'component', oldClassName,
+         oldClassName,
                 oldComponent
             );}
         }
@@ -137,7 +138,7 @@ async function handleFile(file: any): Promise<void> {
 
     await replaceInProject(
         path.basename(file.newUri.path).split('.')[0],
-        'component',
+    
         oldClassName,
         oldfileName
     );

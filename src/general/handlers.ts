@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { renameAngularFiles } from './renamers';
-import { extractExportedClasses, extractImports, getImportLines } from './utilities';
+import { renameAngularFiles, replaceGuardContent } from './renamers';
+import { extractExportedClasses, extractGuardName, extractImports, getImportLines } from './utilities';
 import { getAngularRenamerSettings } from '../settings';
 
 
@@ -13,7 +13,7 @@ async function handler(file: any) {
     );
 
     if (!type) { return; }
-    
+
     if (type === 'service' && !settings.renameServices ||
         type === 'pipe' && !settings.renamePipes ||
         type === 'directive' && !settings.renameDirectives ||
@@ -33,16 +33,28 @@ async function handler(file: any) {
     const fileContent = await vscode.workspace.fs.readFile(vscode.Uri.file(filePath)).then((data) => {
         return Buffer.from(data).toString('utf8');
     });
-    const oldClassName = extractExportedClasses(fileContent, type)[0];
-    await replaceClassName(newName, oldClassName, type, filePath);
 
-    if (settings.searchAndReplaceDeeply)
-    {
-        await replaceInProject(oldName, newName, type, filePath, oldClassName)
+    if (type === 'guard') {
+        const oldGuardName=extractGuardName(fileContent)!;
+        replaceGuardContent(newName, oldName, filePath)
+        if (settings.searchAndReplaceDeeply) {
+    
+            await replaceInProject(oldName, newName, type, filePath,oldGuardName)
+        }
     }
+    else {
+    
+        const oldClassName = extractExportedClasses(fileContent, type)[0];
+        await replaceClassName(newName, oldClassName, type, filePath);
+        if (settings.searchAndReplaceDeeply) {
+            await replaceInProject(oldName, newName, type, filePath, oldClassName)
+        }
+    }
+    
 
 
 }
+
 
 
 
@@ -91,17 +103,12 @@ async function replaceClassName(
 
 
 async function replaceInProject(oldName: string, newName: string, type: string, newPath: string, oldClassName: string): Promise<void> {
-    const fileContent = await vscode.workspace.fs.readFile(vscode.Uri.file(newPath)).then((data) => {
-        return Buffer.from(data).toString('utf8');
-    });
-
-    const newClassName = extractExportedClasses(fileContent, type)[0];
     const workspaceRoot = vscode.workspace.rootPath;
 
     if (!workspaceRoot) {
-        // vscode.window.showErrorMessage('No workspace folder open.');
         return;
     }
+
     const filesPattern = new vscode.RelativePattern(workspaceRoot, `src/**/*.ts`);
     const files = await vscode.workspace.findFiles(filesPattern);
 
@@ -110,20 +117,57 @@ async function replaceInProject(oldName: string, newName: string, type: string, 
             const data = await vscode.workspace.fs.readFile(fileUri);
             let text = Buffer.from(data).toString('utf8');
 
-            const importLines = getImportLines(text, oldClassName);
-            const imports = extractImports(importLines);
-            text = text.replace(new RegExp(`\\b${oldClassName}/\\b`, 'g'), newClassName);
+            if (type === 'guard') {
+                // Existing guard-specific replacements
+                const guardImportRegex = new RegExp(`import\\s*{\\s*${oldClassName}(Guard)?\\s*}\\s*from\\s*['"]([^'"]+)['"]`, 'g');
+                text = text.replace(guardImportRegex, `import { ${newName}Guard } from '$2'`);
+                const guardUsageRegex = new RegExp(`\\b${oldClassName}(Guard)?\\b`, 'g');
+                text = text.replace(guardUsageRegex, `${newName}Guard`);
 
-            for (const imp of imports) {
-                if (imp.moduleName === oldClassName) {
-                    const oldImportPath = imp.path.split('/')[imp.path.split('/').length - 1];
-                    const newImportPath = `${newName}.${type.toLowerCase().replace('.ts', '')}`;
-                    text = text.replace(oldImportPath, newImportPath);
-                    text = text.replaceAll(new RegExp(`\\b${oldClassName}\\b`, 'g'), newClassName);
-                }
+                // Update import path if necessary
+                const oldImportPath = `${oldName}.guard`;
+                const newImportPath = `${newName}.guard`;
+                text = text.replace(new RegExp(oldImportPath, 'g'), newImportPath);
+            } else {
+                const newClassName = getClassName(newName, type);
+
+                // Updated logic for other types
+                const importRegex = new RegExp(`import\\s*{\\s*${oldClassName}\\s*}\\s*from\\s*['"]([^'"]+)['"]`, 'g');
+                text = text.replace(importRegex, (match, importPath) => {
+                    // Update the file path in the import statement
+                    const newImportPath = importPath.replace(
+                        `${oldName}.${type}`,
+                        `${newName}.${type}`,
+                    ).replace(oldClassName,newClassName);
+                    // Update the class name in the import statement
+                    return `import { ${newClassName} } from '${newImportPath}'`;
+                });
+
+                // Update all other references to the old class name
+                const classRegex = new RegExp(`\\b${oldClassName}\\b`, 'g');
+                text = text.replace(classRegex, newClassName);
+
+                // Update describe block in spec files
+                const describeRegex = new RegExp(`describe\\(['"](${oldClassName}|undefined)['"]`, 'g');
+                text = text.replace(describeRegex, `describe('${newClassName}'`);
             }
 
-            await vscode.workspace.fs.writeFile(fileUri, Buffer.from(text, 'utf8'));
+            if (text !== Buffer.from(data).toString('utf8')) {
+                if (await vscode.workspace.fs.stat(fileUri)) {
+                    await vscode.workspace.fs.writeFile(fileUri, Buffer.from(text, 'utf8'));
+                }
+            }
+            
+
+            
+
+            
+
+            if (text !== Buffer.from(data).toString('utf8')) {
+                if (await vscode.workspace.fs.stat(fileUri)) {
+                    await vscode.workspace.fs.writeFile(fileUri, Buffer.from(text, 'utf8'));
+                }
+            }
         }));
     }
 }

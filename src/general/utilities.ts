@@ -3,6 +3,23 @@ interface ImportDetails {
     path: string;
 }
 
+export function extractGuardName(fileContent: string): string | null {
+    // Match class-based guards
+    const classGuardRegex = /export\s+class\s+(\w+)Guard?\s+implements\s+Can[A-Za-z]+/;
+    const classMatch = fileContent.match(classGuardRegex);
+    if (classMatch) {
+        return classMatch[1]+'Guard';
+    }
+
+    // Match function-based guards
+    const functionGuardRegex = /export\s+const\s+(\w+)Guard?:\s+Can[A-Za-z]+Fn/;
+    const functionMatch = fileContent.match(functionGuardRegex);
+    if (functionMatch) {
+        return functionMatch[1]+'Guard';
+    }
+
+    return null; // Return null if no guard is found
+}
 function extractImports(importLines: string[]): ImportDetails[] {
     const importRegex = /import\s*\{\s*([^\}]+)\s*\}\s*from\s*['"]([^'"]+)['"]/g;
     const imports: ImportDetails[] = [];

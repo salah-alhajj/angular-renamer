@@ -14,6 +14,7 @@
 Welcome to the **Angular Renamer** extension for Visual Studio Code – your ultimate companion for effortless refactoring in Angular projects! 🎉
 
 Are you tired of the tedious process of manually renaming components, services, and other Angular entities? Say goodbye to the hassle! Angular Renamer is here to revolutionize your development workflow, providing lightning-fast, error-free renaming with just a few clicks.
+[![Video Demo](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)
 
 ## ✨ Features That Will Make You Smile
 
@@ -53,6 +54,10 @@ src/
 │   ├── handlers.ts             // Generic renaming logic
 │   ├── index.ts                // Unified exports
 │   └── utilities.ts            // Shared helper functions
+├── settings/
+│   ├── settings.interface.ts              // Contain Settings ibterface 
+│   ├── index.ts                // Unified exports and handle function
+│   └── utilities.ts   
 └── extension.ts                // Entry point of the extension
 ```
 
